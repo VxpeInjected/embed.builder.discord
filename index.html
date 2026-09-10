@@ -1,0 +1,943 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>coldd / embeds</title>
+<link rel="icon" href="data:,">
+<style>
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: local('JetBrains Mono');
+}
+* { box-sizing: border-box; }
+:root {
+  --bg: #0a0b0d;
+  --bg-panel: #121317;
+  --bg-raised: #17181d;
+  --bg-input: #0d0e11;
+  --border: #26282e;
+  --border-soft: #1b1c21;
+  --text: #e7e5e1;
+  --text-dim: #8d8f97;
+  --text-faint: #54565c;
+  --accent: #6e7aec;
+  --accent-soft: rgba(110,122,236,.14);
+  --accent-dim: #454b7d;
+  --danger: #c15b45;
+  --danger-soft: rgba(193,91,69,.14);
+  --success: #6fae7c;
+  --mono: ui-monospace, 'JetBrains Mono', 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+html, body {
+  height: 100%;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+body { display: flex; flex-direction: column; }
+::selection { background: var(--accent-soft); }
+button {
+  font-family: var(--mono);
+  cursor: pointer;
+}
+input, textarea, select {
+  font-family: var(--mono);
+  color: var(--text);
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+}
+input:focus, textarea:focus, select:focus, button:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+a { color: var(--accent); }
+
+/* ---------- topbar ---------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border-soft);
+  background: var(--bg-panel);
+  flex-shrink: 0;
+}
+.brand {
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--text);
+  white-space: nowrap;
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+}
+.brand b { color: var(--accent); font-weight: 600; }
+.brand span { color: var(--text-faint); }
+.topbar .divider { width: 1px; height: 18px; background: var(--border); flex-shrink: 0; }
+.webhook-field {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.webhook-field input {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+.webhook-field input::placeholder { color: var(--text-faint); }
+.topbar-actions { display: flex; gap: 8px; flex-shrink: 0; }
+.btn {
+  padding: 7px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--bg-raised);
+  color: var(--text-dim);
+  font-size: 12px;
+  transition: border-color .12s, color .12s, background .12s;
+}
+.btn:hover { color: var(--text); border-color: #35373d; }
+.btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0a0b0d;
+  font-weight: 600;
+}
+.btn.primary:hover { background: #7d88f0; }
+.btn.primary:disabled { opacity: .45; cursor: not-allowed; }
+.btn.danger:hover { color: var(--danger); border-color: var(--danger); }
+.btn.small { padding: 4px 8px; font-size: 11px; }
+
+/* ---------- layout ---------- */
+.layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 220px minmax(340px, 1fr) 380px;
+  min-height: 0;
+}
+.pane { min-height: 0; display: flex; flex-direction: column; }
+.pane-header {
+  padding: 12px 14px 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
+.pane-scroll { flex: 1; overflow-y: auto; padding: 0 12px 20px; }
+.pane-scroll::-webkit-scrollbar { width: 9px; }
+.pane-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; }
+.pane-scroll::-webkit-scrollbar-track { background: transparent; }
+
+/* embed list */
+.embed-list { border-right: 1px solid var(--border-soft); background: var(--bg-panel); }
+.embed-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 5px;
+  border: 1px solid transparent;
+  margin-bottom: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.embed-item:hover { background: var(--bg-raised); }
+.embed-item.active {
+  background: var(--bg-raised);
+  border-color: var(--border);
+  color: var(--text);
+}
+.embed-item .swatch { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+.embed-item .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.embed-item .idx { color: var(--text-faint); font-size: 11px; }
+.add-embed-btn {
+  width: 100%;
+  padding: 8px;
+  border: 1px dashed var(--border);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-faint);
+  font-size: 12px;
+  margin-top: 2px;
+}
+.add-embed-btn:hover { color: var(--accent); border-color: var(--accent-dim); }
+.embed-count { color: var(--text-faint); font-size: 11px; margin-top: 10px; padding: 0 2px; }
+
+.message-meta {
+  border-top: 1px solid var(--border-soft);
+  padding: 12px;
+  flex-shrink: 0;
+}
+.message-meta .pane-header { padding: 0 2px 8px; }
+
+/* ---------- form ---------- */
+.form-pane { border-right: 1px solid var(--border-soft); }
+.field-group { margin-bottom: 18px; }
+.field-row { margin-bottom: 10px; }
+.field-row.split { display: flex; gap: 8px; }
+.field-row.split > * { flex: 1; }
+label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 5px;
+}
+label .limit { font-size: 10px; color: var(--text-faint); }
+label .limit.over { color: var(--danger); }
+input[type=text], input[type=url], textarea {
+  width: 100%;
+  padding: 8px 9px;
+  border-radius: 4px;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+textarea { resize: vertical; min-height: 60px; }
+input::placeholder, textarea::placeholder { color: var(--text-faint); }
+.color-row { display: flex; gap: 8px; align-items: center; }
+input[type=color] {
+  width: 34px; height: 34px;
+  padding: 2px;
+  border-radius: 4px;
+  background: var(--bg-input);
+  cursor: pointer;
+}
+.swatches { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
+.swatches button {
+  width: 18px; height: 18px;
+  border-radius: 3px;
+  border: 1px solid var(--border-soft);
+  padding: 0;
+}
+.swatches button:hover { transform: scale(1.15); }
+
+.section-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  padding: 8px 0;
+  border-top: 1px solid var(--border-soft);
+  font-size: 11.5px;
+  color: var(--text-dim);
+  user-select: none;
+}
+.section-toggle:hover { color: var(--text); }
+.section-toggle .chev { color: var(--text-faint); transition: transform .12s; font-size: 10px; }
+.section-toggle.open .chev { transform: rotate(90deg); }
+.section-body { display: none; padding: 10px 0 4px; }
+.section-body.open { display: block; }
+
+.field-card {
+  border: 1px solid var(--border-soft);
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 8px;
+  background: var(--bg-panel);
+}
+.field-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.field-card-head .tag { font-size: 10px; color: var(--text-faint); }
+.field-card-actions { display: flex; gap: 4px; }
+.icon-btn {
+  width: 22px; height: 22px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-faint);
+  font-size: 12px;
+  padding: 0;
+}
+.icon-btn:hover { color: var(--text); background: var(--bg-raised); }
+.icon-btn.danger:hover { color: var(--danger); }
+.inline-check {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; color: var(--text-dim);
+  margin-top: 6px;
+}
+.inline-check input { width: 13px; height: 13px; accent-color: var(--accent); }
+.add-field-btn {
+  width: 100%;
+  padding: 7px;
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-faint);
+  font-size: 11.5px;
+}
+.add-field-btn:hover { color: var(--accent); border-color: var(--accent-dim); }
+.empty-note { color: var(--text-faint); font-size: 12px; line-height: 1.6; padding: 4px 0 12px; }
+
+/* ---------- preview ---------- */
+.preview-pane { background: #06070a; }
+.preview-inner {
+  padding: 16px;
+  font-family: var(--sans);
+}
+.dc-message { display: flex; gap: 14px; }
+.dc-avatar {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg,#5865F2,#3d47a8);
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 15px; font-weight: 600;
+  overflow: hidden;
+}
+.dc-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.dc-body { min-width: 0; flex: 1; }
+.dc-header { display: flex; align-items: baseline; gap: 7px; margin-bottom: 2px; }
+.dc-username { color: #f2f3f5; font-size: 15px; font-weight: 600; }
+.dc-tag {
+  background: #5865F2; color: #fff; font-size: 9.5px; font-weight: 600;
+  padding: 1px 4px; border-radius: 3px; letter-spacing: .02em;
+}
+.dc-time { color: #949ba4; font-size: 11.5px; }
+.dc-content { color: #dbdee1; font-size: 14.5px; line-height: 1.375; white-space: pre-wrap; word-break: break-word; margin-bottom: 4px; }
+.dc-embed {
+  display: flex;
+  max-width: 432px;
+  border-radius: 4px;
+  background: #2b2d31;
+  margin-top: 4px;
+  overflow: hidden;
+}
+.dc-embed-bar { width: 4px; flex-shrink: 0; background: #202225; }
+.dc-embed-body { padding: 8px 12px 12px; min-width: 0; flex: 1; }
+.dc-embed-author { display: flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 13px; font-weight: 600; color: #f2f3f5; }
+.dc-embed-author img { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; }
+.dc-embed-title { color: #f2f3f5; font-size: 14.5px; font-weight: 600; margin-top: 6px; line-height: 1.3; }
+.dc-embed-title a { color: #00a8fc; text-decoration: none; }
+.dc-embed-title a:hover { text-decoration: underline; }
+.dc-embed-desc { color: #dbdee1; font-size: 13.5px; line-height: 1.375; margin-top: 6px; white-space: pre-wrap; word-break: break-word; }
+.dc-embed-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px,1fr)); gap: 8px; margin-top: 10px; }
+.dc-field { min-width: 0; grid-column: span 3; }
+.dc-field.inline { grid-column: span 1; }
+.dc-field-name { color: #f2f3f5; font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.dc-field-value { color: #dbdee1; font-size: 13.5px; line-height: 1.375; white-space: pre-wrap; word-break: break-word; }
+.dc-embed-image { margin-top: 10px; max-width: 100%; border-radius: 4px; display: block; }
+.dc-embed-thumb { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; float: right; margin: 6px 0 0 10px; }
+.dc-embed-footer { display: flex; align-items: center; gap: 6px; margin-top: 10px; color: #949ba4; font-size: 12px; }
+.dc-embed-footer img { width: 16px; height: 16px; border-radius: 50%; object-fit: cover; }
+.preview-empty {
+  padding: 30px 16px;
+  color: var(--text-faint);
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+/* ---------- json overlay ---------- */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(6,7,9,.72);
+  display: none;
+  align-items: center; justify-content: center;
+  z-index: 50;
+}
+.overlay.open { display: flex; }
+.overlay-panel {
+  width: min(640px, 92vw);
+  max-height: 82vh;
+  display: flex; flex-direction: column;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.5);
+}
+.overlay-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 12px;
+  color: var(--text-dim);
+}
+.overlay-head .close { cursor: pointer; color: var(--text-faint); font-size: 16px; }
+.overlay-head .close:hover { color: var(--text); }
+.overlay-body { padding: 14px 16px; overflow-y: auto; }
+.overlay textarea {
+  width: 100%;
+  height: 320px;
+  font-size: 11.5px;
+  line-height: 1.6;
+  padding: 10px;
+  border-radius: 5px;
+}
+.overlay-actions { display: flex; gap: 8px; margin-top: 10px; justify-content: flex-end; }
+
+/* ---------- toast ---------- */
+.toast {
+  position: fixed;
+  bottom: 18px; left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 9px 16px;
+  border-radius: 6px;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity .18s, transform .18s;
+  pointer-events: none;
+  z-index: 60;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.err { border-color: var(--danger); color: #e9998a; }
+.toast.ok { border-color: var(--success); color: #a8d1af; }
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .embed-list { border-right: none; border-bottom: 1px solid var(--border-soft); }
+  .form-pane { border-right: none; border-bottom: 1px solid var(--border-soft); }
+  .pane-scroll { max-height: 50vh; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><b>coldd</b><span>/</span>embeds</div>
+  <div class="divider"></div>
+  <div class="webhook-field">
+    <input id="webhookUrl" type="text" placeholder="discord webhook url" autocomplete="off" spellcheck="false">
+  </div>
+  <div class="topbar-actions">
+    <button class="btn" id="btnJson">json</button>
+    <button class="btn primary" id="btnSend">send</button>
+  </div>
+</div>
+
+<div class="layout">
+
+  <div class="pane embed-list">
+    <div class="pane-header">embeds</div>
+    <div class="pane-scroll">
+      <div id="embedListItems"></div>
+      <button class="add-embed-btn" id="btnAddEmbed">+ add embed</button>
+      <div class="embed-count" id="embedCount"></div>
+    </div>
+    <div class="message-meta">
+      <div class="pane-header">message</div>
+      <div class="field-row">
+        <label>content</label>
+        <textarea id="msgContent" placeholder="text above the embeds (optional)" rows="2"></textarea>
+      </div>
+      <div class="field-row split">
+        <div>
+          <label>username</label>
+          <input type="text" id="msgUsername" placeholder="override">
+        </div>
+        <div>
+          <label>avatar url</label>
+          <input type="text" id="msgAvatar" placeholder="override">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pane form-pane">
+    <div class="pane-header" id="formHeader">embed 1</div>
+    <div class="pane-scroll" id="formScroll"></div>
+  </div>
+
+  <div class="pane preview-pane">
+    <div class="pane-header">preview</div>
+    <div class="pane-scroll">
+      <div class="preview-inner" id="previewInner"></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="overlay" id="jsonOverlay">
+  <div class="overlay-panel">
+    <div class="overlay-head">
+      <span>webhook payload — json</span>
+      <span class="close" id="jsonClose">&times;</span>
+    </div>
+    <div class="overlay-body">
+      <textarea id="jsonArea" spellcheck="false"></textarea>
+      <div class="overlay-actions">
+        <button class="btn" id="btnCopyJson">copy</button>
+        <button class="btn primary" id="btnLoadJson">load into editor</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const LIMITS = { title:256, description:4096, fieldName:256, fieldValue:1024, footerText:2048, authorName:256, fields:25, embeds:10, total:6000 };
+const PRESET_COLORS = ['#6e7aec','#c15b45','#6fae7c','#d4a24e','#8a6fd6','#4fa3c1','#e0e0e0','#2b2d31'];
+
+const store = { autosaveKey: 'coldd_embeds_draft_v1' };
+
+function emptyEmbed() {
+  return {
+    title: '', url: '', description: '', color: '#6e7aec',
+    author: { name: '', url: '', icon_url: '' },
+    thumbnail: { url: '' },
+    image: { url: '' },
+    footer: { text: '', icon_url: '' },
+    timestamp: false,
+    fields: []
+  };
+}
+
+let state = {
+  content: '',
+  username: '',
+  avatar_url: '',
+  embeds: [emptyEmbed()],
+  activeIndex: 0
+};
+
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(store.autosaveKey);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    if (parsed && Array.isArray(parsed.embeds) && parsed.embeds.length) {
+      state = Object.assign(state, parsed);
+      if (state.activeIndex >= state.embeds.length) state.activeIndex = 0;
+    }
+  } catch (e) {}
+  try {
+    const wh = localStorage.getItem('coldd_embeds_webhook');
+    if (wh) document.getElementById('webhookUrl').value = wh;
+  } catch (e) {}
+}
+
+let saveTimer = null;
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try { localStorage.setItem(store.autosaveKey, JSON.stringify(state)); } catch (e) {}
+  }, 250);
+}
+
+function escapeHtml(str) {
+  return (str || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderMarkdown(raw) {
+  if (!raw) return '';
+  let s = escapeHtml(raw);
+  s = s.replace(/```([\s\S]*?)```/g, (m, code) => `<code style="display:block;background:#1e1f22;border-radius:4px;padding:6px 8px;font-family:ui-monospace,monospace;font-size:12.5px;white-space:pre-wrap;">${code}</code>`);
+  s = s.replace(/`([^`]+)`/g, '<code style="background:#1e1f22;border-radius:3px;padding:1px 4px;font-family:ui-monospace,monospace;font-size:.9em;">$1</code>');
+  s = s.replace(/\*\*\*(.+?)\*\*\*/g, '<b><i>$1</i></b>');
+  s = s.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+  s = s.replace(/__(.+?)__/g, '<u>$1</u>');
+  s = s.replace(/~~(.+?)~~/g, '<s>$1</s>');
+  s = s.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<i>$1</i>');
+  s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  return s;
+}
+
+function timeAgoLabel() {
+  const d = new Date();
+  return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
+function hexToInt(hex) {
+  if (!hex) return 0;
+  return parseInt(hex.replace('#',''), 16) || 0;
+}
+
+/* ---------- rendering: embed list ---------- */
+function renderEmbedList() {
+  const wrap = document.getElementById('embedListItems');
+  wrap.innerHTML = '';
+  state.embeds.forEach((em, i) => {
+    const item = document.createElement('div');
+    item.className = 'embed-item' + (i === state.activeIndex ? ' active' : '');
+    const label = em.title ? em.title.slice(0, 22) : (em.description ? em.description.slice(0,22) : 'untitled');
+    item.innerHTML = `
+      <span class="swatch" style="background:${em.color || '#6e7aec'}"></span>
+      <span class="name">${escapeHtml(label)}</span>
+      <span class="idx">${i+1}</span>
+    `;
+    item.onclick = () => { state.activeIndex = i; renderAll(); };
+    wrap.appendChild(item);
+  });
+  document.getElementById('embedCount').textContent = `${state.embeds.length} / ${LIMITS.embeds}`;
+  document.getElementById('btnAddEmbed').disabled = state.embeds.length >= LIMITS.embeds;
+  document.getElementById('formHeader').textContent = `embed ${state.activeIndex + 1}`;
+}
+
+/* ---------- rendering: form ---------- */
+const sectionState = { author: false, images: false, fields: true, footer: false };
+
+function limitLabel(len, max) {
+  const over = len > max;
+  return `<span class="limit${over ? ' over' : ''}">${len}/${max}</span>`;
+}
+
+function renderForm() {
+  const em = state.embeds[state.activeIndex];
+  if (!em) return;
+  const scroll = document.getElementById('formScroll');
+
+  scroll.innerHTML = `
+    <div class="field-row">
+      <label>title ${limitLabel(em.title.length, LIMITS.title)}</label>
+      <input type="text" id="f_title" value="${escapeHtml(em.title)}" placeholder="embed title" maxlength="${LIMITS.title}">
+    </div>
+    <div class="field-row">
+      <label>title link</label>
+      <input type="text" id="f_url" value="${escapeHtml(em.url)}" placeholder="https://...">
+    </div>
+    <div class="field-row">
+      <label>description ${limitLabel(em.description.length, LIMITS.description)}</label>
+      <textarea id="f_desc" rows="4" placeholder="supports **bold**, *italic*, __underline__, ~~strike~~, \`code\`, [links](url)">${escapeHtml(em.description)}</textarea>
+    </div>
+    <div class="field-row">
+      <label>color</label>
+      <div class="color-row">
+        <input type="color" id="f_color" value="${em.color}">
+        <input type="text" id="f_colorHex" value="${em.color}" style="width:90px;padding:7px 8px;border-radius:4px;">
+      </div>
+      <div class="swatches" id="swatches"></div>
+    </div>
+
+    <div class="section-toggle${sectionState.author ? ' open':''}" data-sec="author"><span>author</span><span class="chev">▸</span></div>
+    <div class="section-body${sectionState.author ? ' open':''}" id="sec_author">
+      <div class="field-row"><label>name ${limitLabel(em.author.name.length, LIMITS.authorName)}</label>
+        <input type="text" id="f_authorName" value="${escapeHtml(em.author.name)}" placeholder="author name" maxlength="${LIMITS.authorName}"></div>
+      <div class="field-row"><label>author link</label>
+        <input type="text" id="f_authorUrl" value="${escapeHtml(em.author.url)}" placeholder="https://..."></div>
+      <div class="field-row"><label>icon url</label>
+        <input type="text" id="f_authorIcon" value="${escapeHtml(em.author.icon_url)}" placeholder="https://..."></div>
+    </div>
+
+    <div class="section-toggle${sectionState.images ? ' open':''}" data-sec="images"><span>images</span><span class="chev">▸</span></div>
+    <div class="section-body${sectionState.images ? ' open':''}" id="sec_images">
+      <div class="field-row"><label>large image url</label>
+        <input type="text" id="f_image" value="${escapeHtml(em.image.url)}" placeholder="https://..."></div>
+      <div class="field-row"><label>thumbnail url</label>
+        <input type="text" id="f_thumb" value="${escapeHtml(em.thumbnail.url)}" placeholder="https://..."></div>
+    </div>
+
+    <div class="section-toggle${sectionState.fields ? ' open':''}" data-sec="fields"><span>fields (${em.fields.length}/${LIMITS.fields})</span><span class="chev">▸</span></div>
+    <div class="section-body${sectionState.fields ? ' open':''}" id="sec_fields">
+      <div id="fieldsWrap"></div>
+      <button class="add-field-btn" id="btnAddField" ${em.fields.length >= LIMITS.fields ? 'disabled' : ''}>+ add field</button>
+    </div>
+
+    <div class="section-toggle${sectionState.footer ? ' open':''}" data-sec="footer"><span>footer & timestamp</span><span class="chev">▸</span></div>
+    <div class="section-body${sectionState.footer ? ' open':''}" id="sec_footer">
+      <div class="field-row"><label>footer text ${limitLabel(em.footer.text.length, LIMITS.footerText)}</label>
+        <input type="text" id="f_footerText" value="${escapeHtml(em.footer.text)}" placeholder="footer text" maxlength="${LIMITS.footerText}"></div>
+      <div class="field-row"><label>footer icon url</label>
+        <input type="text" id="f_footerIcon" value="${escapeHtml(em.footer.icon_url)}" placeholder="https://..."></div>
+      <label class="inline-check"><input type="checkbox" id="f_timestamp" ${em.timestamp ? 'checked' : ''}> include current timestamp</label>
+    </div>
+
+    <div style="height:16px"></div>
+    <button class="btn danger" id="btnDeleteEmbed" style="width:100%">delete this embed</button>
+  `;
+
+  const preset = document.getElementById('swatches');
+  PRESET_COLORS.forEach(c => {
+    const b = document.createElement('button');
+    b.style.background = c;
+    b.title = c;
+    b.onclick = () => { em.color = c; renderAll(); };
+    preset.appendChild(b);
+  });
+
+  scroll.querySelectorAll('.section-toggle').forEach(el => {
+    el.onclick = () => {
+      const key = el.dataset.sec;
+      sectionState[key] = !sectionState[key];
+      renderForm();
+    };
+  });
+
+  renderFields(em);
+
+  bind('f_title', v => em.title = v);
+  bind('f_url', v => em.url = v);
+  bind('f_desc', v => em.description = v);
+  bind('f_colorHex', v => { em.color = v; document.getElementById('f_color').value = v; renderEmbedList(); renderPreview(); scheduleSave(); });
+  document.getElementById('f_color').oninput = e => { em.color = e.target.value; document.getElementById('f_colorHex').value = e.target.value; renderEmbedList(); renderPreview(); scheduleSave(); };
+  bind('f_authorName', v => em.author.name = v);
+  bind('f_authorUrl', v => em.author.url = v);
+  bind('f_authorIcon', v => em.author.icon_url = v);
+  bind('f_image', v => em.image.url = v);
+  bind('f_thumb', v => em.thumbnail.url = v);
+  bind('f_footerText', v => em.footer.text = v);
+  bind('f_footerIcon', v => em.footer.icon_url = v);
+  document.getElementById('f_timestamp').onchange = e => { em.timestamp = e.target.checked; renderPreview(); scheduleSave(); };
+
+  document.getElementById('btnAddField').onclick = () => {
+    if (em.fields.length >= LIMITS.fields) return;
+    em.fields.push({ name: '', value: '', inline: true });
+    renderForm(); renderPreview(); scheduleSave();
+  };
+  document.getElementById('btnDeleteEmbed').onclick = () => {
+    state.embeds.splice(state.activeIndex, 1);
+    if (!state.embeds.length) state.embeds.push(emptyEmbed());
+    state.activeIndex = Math.max(0, state.activeIndex - 1);
+    renderAll();
+  };
+
+  function bind(id, setter) {
+    const el = document.getElementById(id);
+    el.oninput = () => { setter(el.value); renderPreview(); renderEmbedList(); scheduleSave(); refreshLimits(); };
+  }
+  function refreshLimits() { /* labels update on next renderForm; cheap enough to skip live-refresh */ }
+}
+
+function renderFields(em) {
+  const wrap = document.getElementById('fieldsWrap');
+  wrap.innerHTML = '';
+  em.fields.forEach((f, i) => {
+    const card = document.createElement('div');
+    card.className = 'field-card';
+    card.innerHTML = `
+      <div class="field-card-head">
+        <span class="tag">field ${i+1}</span>
+        <div class="field-card-actions">
+          <button class="icon-btn" data-act="up" title="move up">↑</button>
+          <button class="icon-btn" data-act="down" title="move down">↓</button>
+          <button class="icon-btn danger" data-act="del" title="delete">✕</button>
+        </div>
+      </div>
+      <div class="field-row"><label>name ${limitLabel(f.name.length, LIMITS.fieldName)}</label>
+        <input type="text" data-k="name" value="${escapeHtml(f.name)}" placeholder="field name" maxlength="${LIMITS.fieldName}"></div>
+      <div class="field-row"><label>value ${limitLabel(f.value.length, LIMITS.fieldValue)}</label>
+        <textarea data-k="value" rows="2" placeholder="field value" maxlength="${LIMITS.fieldValue}">${escapeHtml(f.value)}</textarea></div>
+      <label class="inline-check"><input type="checkbox" data-k="inline" ${f.inline ? 'checked' : ''}> inline</label>
+    `;
+    card.querySelector('[data-k="name"]').oninput = e => { f.name = e.target.value; renderPreview(); scheduleSave(); };
+    card.querySelector('[data-k="value"]').oninput = e => { f.value = e.target.value; renderPreview(); scheduleSave(); };
+    card.querySelector('[data-k="inline"]').onchange = e => { f.inline = e.target.checked; renderPreview(); scheduleSave(); };
+    card.querySelector('[data-act="del"]').onclick = () => { em.fields.splice(i,1); renderForm(); renderPreview(); scheduleSave(); };
+    card.querySelector('[data-act="up"]').onclick = () => { if (i>0) { [em.fields[i-1],em.fields[i]]=[em.fields[i],em.fields[i-1]]; renderForm(); renderPreview(); scheduleSave(); } };
+    card.querySelector('[data-act="down"]').onclick = () => { if (i<em.fields.length-1) { [em.fields[i+1],em.fields[i]]=[em.fields[i],em.fields[i+1]]; renderForm(); renderPreview(); scheduleSave(); } };
+    wrap.appendChild(card);
+  });
+}
+
+/* ---------- rendering: preview ---------- */
+function renderPreview() {
+  const inner = document.getElementById('previewInner');
+  const hasContent = state.content.trim().length > 0;
+  const hasEmbeds = state.embeds.some(e => e.title || e.description || e.fields.length || e.image.url || e.thumbnail.url || e.author.name || e.footer.text);
+
+  if (!hasContent && !hasEmbeds) {
+    inner.innerHTML = `<div class="preview-empty">nothing to preview yet —<br>start filling in the embed on the left.</div>`;
+    return;
+  }
+
+  const username = state.username || 'coldd';
+  const avatar = state.avatar_url;
+
+  let html = `<div class="dc-message">
+    <div class="dc-avatar">${avatar ? `<img src="${escapeHtml(avatar)}" onerror="this.parentElement.innerHTML='${username.charAt(0).toUpperCase()}'">` : username.charAt(0).toUpperCase()}</div>
+    <div class="dc-body">
+      <div class="dc-header">
+        <span class="dc-username">${escapeHtml(username)}</span>
+        <span class="dc-tag">APP</span>
+        <span class="dc-time">${timeAgoLabel()}</span>
+      </div>`;
+
+  if (hasContent) {
+    html += `<div class="dc-content">${renderMarkdown(state.content)}</div>`;
+  }
+
+  state.embeds.forEach(em => {
+    const empty = !(em.title || em.description || em.fields.length || em.image.url || em.thumbnail.url || em.author.name || em.footer.text);
+    if (empty) return;
+    html += `<div class="dc-embed"><div class="dc-embed-bar" style="background:${em.color || '#202225'}"></div><div class="dc-embed-body">`;
+    if (em.author.name) {
+      html += `<div class="dc-embed-author">${em.author.icon_url ? `<img src="${escapeHtml(em.author.icon_url)}" onerror="this.style.display='none'">` : ''}${em.author.url ? `<a href="${escapeHtml(em.author.url)}" target="_blank" style="color:inherit;text-decoration:none;">${escapeHtml(em.author.name)}</a>` : escapeHtml(em.author.name)}</div>`;
+    }
+    if (em.thumbnail.url) html += `<img class="dc-embed-thumb" src="${escapeHtml(em.thumbnail.url)}" onerror="this.style.display='none'">`;
+    if (em.title) {
+      html += `<div class="dc-embed-title">${em.url ? `<a href="${escapeHtml(em.url)}" target="_blank">${escapeHtml(em.title)}</a>` : escapeHtml(em.title)}</div>`;
+    }
+    if (em.description) html += `<div class="dc-embed-desc">${renderMarkdown(em.description)}</div>`;
+    if (em.fields.length) {
+      html += `<div class="dc-embed-fields">`;
+      em.fields.forEach(f => {
+        if (!f.name && !f.value) return;
+        html += `<div class="dc-field${f.inline ? ' inline':''}"><div class="dc-field-name">${escapeHtml(f.name)}</div><div class="dc-field-value">${renderMarkdown(f.value)}</div></div>`;
+      });
+      html += `</div>`;
+    }
+    if (em.image.url) html += `<img class="dc-embed-image" src="${escapeHtml(em.image.url)}" onerror="this.style.display='none'">`;
+    if (em.footer.text || em.timestamp) {
+      html += `<div class="dc-embed-footer">${em.footer.icon_url ? `<img src="${escapeHtml(em.footer.icon_url)}" onerror="this.style.display='none'">` : ''}<span>${escapeHtml(em.footer.text)}${em.footer.text && em.timestamp ? ' • ' : ''}${em.timestamp ? timeAgoLabel() : ''}</span></div>`;
+    }
+    html += `</div></div>`;
+  });
+
+  html += `</div></div>`;
+  inner.innerHTML = html;
+}
+
+/* ---------- payload / json ---------- */
+function buildPayload() {
+  const payload = {};
+  if (state.content.trim()) payload.content = state.content;
+  if (state.username.trim()) payload.username = state.username;
+  if (state.avatar_url.trim()) payload.avatar_url = state.avatar_url;
+
+  const embeds = state.embeds.map(em => {
+    const e = {};
+    if (em.title) e.title = em.title;
+    if (em.url) e.url = em.url;
+    if (em.description) e.description = em.description;
+    if (em.color) e.color = hexToInt(em.color);
+    if (em.author.name) e.author = { name: em.author.name, url: em.author.url || undefined, icon_url: em.author.icon_url || undefined };
+    if (em.thumbnail.url) e.thumbnail = { url: em.thumbnail.url };
+    if (em.image.url) e.image = { url: em.image.url };
+    if (em.footer.text) e.footer = { text: em.footer.text, icon_url: em.footer.icon_url || undefined };
+    if (em.timestamp) e.timestamp = new Date().toISOString();
+    if (em.fields.length) e.fields = em.fields.filter(f => f.name || f.value).map(f => ({ name: f.name || '\u200b', value: f.value || '\u200b', inline: !!f.inline }));
+    return e;
+  }).filter(e => Object.keys(e).length > 0);
+
+  if (embeds.length) payload.embeds = embeds;
+  return payload;
+}
+
+function openJsonOverlay() {
+  document.getElementById('jsonArea').value = JSON.stringify(buildPayload(), null, 2);
+  document.getElementById('jsonOverlay').classList.add('open');
+}
+
+function loadFromJson(raw) {
+  try {
+    const parsed = JSON.parse(raw);
+    state.content = parsed.content || '';
+    state.username = parsed.username || '';
+    state.avatar_url = parsed.avatar_url || '';
+    const embeds = Array.isArray(parsed.embeds) && parsed.embeds.length ? parsed.embeds : [{}];
+    state.embeds = embeds.slice(0, LIMITS.embeds).map(e => ({
+      title: e.title || '',
+      url: e.url || '',
+      description: e.description || '',
+      color: typeof e.color === 'number' ? '#' + e.color.toString(16).padStart(6,'0') : '#6e7aec',
+      author: { name: e.author?.name || '', url: e.author?.url || '', icon_url: e.author?.icon_url || '' },
+      thumbnail: { url: e.thumbnail?.url || '' },
+      image: { url: e.image?.url || '' },
+      footer: { text: e.footer?.text || '', icon_url: e.footer?.icon_url || '' },
+      timestamp: !!e.timestamp,
+      fields: Array.isArray(e.fields) ? e.fields.slice(0, LIMITS.fields).map(f => ({ name: f.name || '', value: f.value || '', inline: f.inline !== false })) : []
+    }));
+    state.activeIndex = 0;
+    renderAll();
+    showToast('loaded from json', 'ok');
+    document.getElementById('jsonOverlay').classList.remove('open');
+  } catch (e) {
+    showToast('invalid json — ' + e.message, 'err');
+  }
+}
+
+/* ---------- send ---------- */
+async function sendWebhook() {
+  const url = document.getElementById('webhookUrl').value.trim();
+  if (!url) { showToast('paste a webhook url first', 'err'); return; }
+  try { localStorage.setItem('coldd_embeds_webhook', url); } catch (e) {}
+  const payload = buildPayload();
+  if (!payload.content && !payload.embeds) { showToast('nothing to send', 'err'); return; }
+
+  const btn = document.getElementById('btnSend');
+  btn.disabled = true;
+  btn.textContent = 'sending…';
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (res.ok || res.status === 204) {
+      showToast('sent', 'ok');
+    } else {
+      const text = await res.text().catch(() => '');
+      showToast(`discord returned ${res.status}${text ? ' — ' + text.slice(0,120) : ''}`, 'err');
+    }
+  } catch (e) {
+    showToast('send failed — check the url and your connection', 'err');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'send';
+  }
+}
+
+/* ---------- toast ---------- */
+let toastTimer = null;
+function showToast(msg, kind) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (kind ? ' ' + kind : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+/* ---------- wiring ---------- */
+function renderAll() {
+  renderEmbedList();
+  renderForm();
+  renderPreview();
+}
+
+document.getElementById('btnAddEmbed').onclick = () => {
+  if (state.embeds.length >= LIMITS.embeds) return;
+  state.embeds.push(emptyEmbed());
+  state.activeIndex = state.embeds.length - 1;
+  renderAll();
+  scheduleSave();
+};
+
+document.getElementById('msgContent').oninput = e => { state.content = e.target.value; renderPreview(); scheduleSave(); };
+document.getElementById('msgUsername').oninput = e => { state.username = e.target.value; renderPreview(); scheduleSave(); };
+document.getElementById('msgAvatar').oninput = e => { state.avatar_url = e.target.value; renderPreview(); scheduleSave(); };
+document.getElementById('msgContent').value = state.content;
+document.getElementById('msgUsername').value = state.username;
+document.getElementById('msgAvatar').value = state.avatar_url;
+
+document.getElementById('btnJson').onclick = openJsonOverlay;
+document.getElementById('jsonClose').onclick = () => document.getElementById('jsonOverlay').classList.remove('open');
+document.getElementById('jsonOverlay').onclick = e => { if (e.target.id === 'jsonOverlay') e.currentTarget.classList.remove('open'); };
+document.getElementById('btnCopyJson').onclick = () => {
+  navigator.clipboard.writeText(document.getElementById('jsonArea').value).then(() => showToast('copied', 'ok'));
+};
+document.getElementById('btnLoadJson').onclick = () => loadFromJson(document.getElementById('jsonArea').value);
+document.getElementById('btnSend').onclick = sendWebhook;
+
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') { e.preventDefault(); sendWebhook(); }
+  if (e.key === 'Escape') document.getElementById('jsonOverlay').classList.remove('open');
+});
+
+loadDraft();
+document.getElementById('msgContent').value = state.content;
+document.getElementById('msgUsername').value = state.username;
+document.getElementById('msgAvatar').value = state.avatar_url;
+renderAll();
+</script>
+</body>
+</html>
