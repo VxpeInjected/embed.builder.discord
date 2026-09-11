@@ -33,7 +33,7 @@
 html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text); font-family: var(--mono); font-size: 13px; -webkit-font-smoothing: antialiased; cursor: var(--cur-default); }
 body { display: flex; flex-direction: column; overflow: hidden; }
 ::selection { background: var(--accent-soft); }
-button, .icon-btn, .btn, .embed-item, .section-toggle, .add-embed-btn, .add-field-btn, .swatches button, input[type=checkbox], input[type=color], .quick-add button, .fp-close, .fp-resize, .seg-opt, .popout-trigger { cursor: var(--cur-pointer); }
+button, .icon-btn, .btn, .embed-item, .section-toggle, .add-embed-btn, .add-field-btn, .swatches button, input[type=checkbox], input[type=color], .quick-add button, .fp-close, .fp-resize, .seg-opt, .popout-trigger, .overlay-head .close, .drag-handle { cursor: var(--cur-pointer); }
 input[type=text], input[type=url], textarea { cursor: var(--cur-text); }
 input, textarea, select { font-family: var(--mono); color: var(--text); background: var(--bg-input); border: 1px solid var(--border); }
 input:focus, textarea:focus, select:focus, button:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
@@ -49,7 +49,7 @@ a { color: var(--accent); }
 .webhook-field input { flex: 1; min-width: 0; padding: 7px 10px; border-radius: 4px; font-size: 12px; }
 .webhook-field input::placeholder { color: var(--text-faint); }
 .topbar-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
-.btn { padding: 7px 12px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-raised); color: var(--text-dim); font-size: 12px; transition: border-color .12s, color .12s, background .12s; }
+.btn { padding: 7px 12px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-raised); color: var(--text-dim); font-size: 12px; transition: border-color .12s, color .12s, background .12s; display: inline-flex; align-items: center; gap: 6px; }
 .btn:hover { color: var(--text); border-color: #35373d; }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: #0a0b0d; font-weight: 600; }
 .btn.primary:hover { background: #7d88f0; }
@@ -71,6 +71,10 @@ a { color: var(--accent); }
 .embed-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 5px; border: 1px solid transparent; margin-bottom: 4px; font-size: 12px; color: var(--text-dim); }
 .embed-item:hover { background: var(--bg-raised); }
 .embed-item.active { background: var(--bg-raised); border-color: var(--border); color: var(--text); }
+.embed-item.dragging { opacity: .35; }
+.embed-item.drag-over { border-color: var(--accent); }
+.embed-item .drag-handle { color: var(--text-faint); flex-shrink: 0; display: flex; cursor: grab; }
+.embed-item .drag-handle:active { cursor: grabbing; }
 .embed-item .swatch { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
 .embed-item .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .embed-item .idx { color: var(--text-faint); font-size: 11px; }
@@ -112,8 +116,11 @@ input[type=color] { width: 34px; height: 34px; padding: 2px; border-radius: 4px;
 .icon-btn { width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 3px; border: 1px solid transparent; background: transparent; color: var(--text-faint); font-size: 12px; padding: 0; }
 .icon-btn:hover { color: var(--text); background: var(--bg-raised); }
 .icon-btn.danger:hover { color: var(--danger); }
-.inline-check { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); margin-top: 6px; }
-.inline-check input { width: 13px; height: 13px; accent-color: var(--accent); }
+.inline-check { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); margin-top: 6px; user-select: none; }
+.inline-check input { position: absolute; opacity: 0; width: 0; height: 0; }
+.cbx-box { width: 14px; height: 14px; border: 1px solid var(--border); border-radius: 3px; background: var(--bg-input); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: transparent; transition: background .12s, border-color .12s, color .12s; }
+.inline-check input:checked + .cbx-box { background: var(--accent); border-color: var(--accent); color: #0a0b0d; }
+.inline-check:hover .cbx-box { border-color: var(--accent-dim); }
 .add-field-btn { width: 100%; padding: 7px; border: 1px dashed var(--border); border-radius: 4px; background: transparent; color: var(--text-faint); font-size: 11.5px; }
 .add-field-btn:hover { color: var(--accent); border-color: var(--accent-dim); }
 
@@ -145,7 +152,7 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
 .col-resizer:hover::after, .col-resizer.active::after { background: var(--accent); }
 .preview-inner { padding: 16px; font-family: var(--sans); }
 .preview-inner.compact { padding: 10px; font-size: 92%; }
-.popout-trigger { background: transparent; border: 1px solid transparent; color: var(--text-faint); font-size: 12px; padding: 2px 5px; border-radius: 3px; }
+.popout-trigger { background: transparent; border: 1px solid transparent; color: var(--text-faint); font-size: 12px; padding: 3px 5px; border-radius: 3px; display: inline-flex; align-items: center; }
 .popout-trigger:hover { color: var(--accent); border-color: var(--accent-dim); }
 .docked-placeholder { color: var(--text-faint); font-size: 11.5px; padding: 14px; border: 1px dashed var(--border); border-radius: 6px; text-align: center; line-height: 1.7; margin: 8px 0; }
 .docked-placeholder button { margin-top: 6px; }
@@ -173,6 +180,8 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
 .dc-field-name { color: #f2f3f5; font-size: 13px; font-weight: 600; margin-bottom: 2px; }
 .dc-field-value { color: #dbdee1; font-size: 13.5px; line-height: 1.375; white-space: pre-wrap; word-break: break-word; }
 .dc-embed-image { margin-top: 10px; max-width: 100%; border-radius: 4px; display: block; }
+.dc-gallery-grid { display: grid; gap: 4px; margin-top: 8px; }
+.dc-gallery-img { width: 100%; height: 100px; object-fit: cover; border-radius: 4px; display: block; margin-top: 0 !important; }
 .dc-embed-thumb { width: 80px; height: 80px; object-fit: cover; border-radius: 4px; float: right; margin: 6px 0 0 10px; }
 .dc-embed-footer { display: flex; align-items: center; gap: 6px; margin-top: 10px; color: #949ba4; font-size: 12px; }
 .dc-embed-footer img { width: 16px; height: 16px; border-radius: 50%; object-fit: cover; }
@@ -205,8 +214,8 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
 .overlay.open { display: flex; }
 .overlay-panel { width: min(640px, 92vw); max-height: 82vh; display: flex; flex-direction: column; background: var(--bg-panel); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
 .overlay-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--border-soft); font-size: 12px; color: var(--text-dim); }
-.overlay-head .close { color: var(--text-faint); font-size: 16px; }
-.overlay-head .close:hover { color: var(--text); }
+.overlay-head .close { color: var(--text-faint); font-size: 16px; display: inline-flex; align-items: center; padding: 4px; border-radius: 3px; }
+.overlay-head .close:hover { color: var(--text); background: var(--bg-raised); }
 .overlay-body { padding: 14px 16px; overflow-y: auto; }
 .overlay textarea { width: 100%; height: 320px; font-size: 11.5px; line-height: 1.6; padding: 10px; border-radius: 5px; }
 .overlay-actions { display: flex; gap: 8px; margin-top: 10px; justify-content: flex-end; }
@@ -217,8 +226,8 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
 .fp-header .fp-title { display: flex; align-items: center; gap: 7px; }
 .fp-header .fp-title .grip-dots { display: grid; grid-template-columns: repeat(2,3px); grid-template-rows: repeat(3,3px); gap: 2px; }
 .fp-header .fp-title .grip-dots span { width: 3px; height: 3px; border-radius: 50%; background: var(--text-faint); }
-.fp-close { width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; border-radius: 3px; color: var(--text-faint); font-size: 13px; background: transparent; border: none; }
-.fp-close:hover { color: var(--text); background: var(--bg-panel); }
+.fp-close { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 3px; color: var(--text-faint); font-size: 10.5px; background: transparent; border: 1px solid transparent; }
+.fp-close:hover { color: var(--text); background: var(--bg-panel); border-color: var(--border-soft); }
 .fp-body { flex: 1; overflow-y: auto; padding: 12px; min-height: 0; }
 .fp-body textarea { width: 100%; height: 100%; resize: none; padding: 10px; border-radius: 5px; font-size: 13px; line-height: 1.6; }
 .fp-resize { position: absolute; right: 0; bottom: 0; width: 20px; height: 20px; cursor: nwse-resize; display: flex; align-items: flex-end; justify-content: flex-end; padding: 3px; }
@@ -251,8 +260,8 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
     <input id="webhookUrl" type="text" placeholder="discord webhook url" autocomplete="off" spellcheck="false">
   </div>
   <div class="topbar-actions">
-    <button class="btn icon-only" id="btnSettings" title="settings">⚙</button>
-    <button class="btn" id="btnStorage" title="save, load, share">💾 save</button>
+    <button class="btn icon-only" id="btnSettings" title="settings"></button>
+    <button class="btn" id="btnStorage" title="save, load, share"></button>
     <button class="btn" id="btnJson">json</button>
     <button class="btn primary" id="btnSend">send</button>
   </div>
@@ -268,7 +277,7 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
       <div class="embed-count" id="embedCount"></div>
     </div>
     <div class="message-meta" id="messageMeta">
-      <div class="pane-header"><span>message</span><button class="popout-trigger" id="btnPopoutContent" title="pop out content editor">⤢</button></div>
+      <div class="pane-header"><span>message</span><button class="popout-trigger" id="btnPopoutContent" title="pop out content editor"></button></div>
       <div id="msgContentDock">
         <div class="field-row">
           <label>content</label>
@@ -289,7 +298,7 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
 
   <div class="pane preview-pane">
     <div class="col-resizer" id="colResizer"></div>
-    <div class="pane-header"><span>preview</span><button class="popout-trigger" id="btnPopoutPreview" title="pop out preview">⤢</button></div>
+    <div class="pane-header"><span>preview</span><button class="popout-trigger" id="btnPopoutPreview" title="pop out preview"></button></div>
     <div class="pane-scroll" id="previewDock">
       <div class="preview-inner" id="previewInner"></div>
     </div>
@@ -299,9 +308,10 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
 
 <div class="overlay" id="jsonOverlay">
   <div class="overlay-panel">
-    <div class="overlay-head"><span>webhook payload — json</span><span class="close" id="jsonClose">&times;</span></div>
+    <div class="overlay-head"><span>webhook payload — json</span><span class="close" id="jsonClose"></span></div>
     <div class="overlay-body">
       <textarea id="jsonArea" spellcheck="false"></textarea>
+      <div class="setting-desc" id="jsonNote" style="margin-top:8px;"></div>
       <div class="overlay-actions">
         <button class="btn" id="btnCopyJson">copy</button>
         <button class="btn primary" id="btnLoadJson">load into editor</button>
@@ -312,7 +322,7 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
 
 <div class="overlay" id="settingsOverlay">
   <div class="overlay-panel" style="width:min(440px,92vw)">
-    <div class="overlay-head"><span>settings</span><span class="close" id="settingsClose">&times;</span></div>
+    <div class="overlay-head"><span>settings</span><span class="close" id="settingsClose"></span></div>
     <div class="overlay-body">
       <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">message format</div>
       <div class="seg" id="formatSeg">
@@ -343,7 +353,7 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
 
 <div class="overlay" id="storageOverlay">
   <div class="overlay-panel" style="width:min(520px,92vw)">
-    <div class="overlay-head"><span>save, load & share</span><span class="close" id="storageClose">&times;</span></div>
+    <div class="overlay-head"><span>save, load & share</span><span class="close" id="storageClose"></span></div>
     <div class="overlay-body">
       <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;">shareable link — updates automatically as you edit</div>
       <div class="field-row split" style="align-items:center;">
@@ -354,11 +364,16 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
 
       <div style="font-size:11px;color:var(--text-dim);margin:16px 0 6px;border-top:1px solid var(--border-soft);padding-top:12px;">file</div>
       <div class="field-row split">
-        <button class="btn small" id="btnDownloadFile">↓ download .json</button>
-        <button class="btn small" id="btnUploadFile">↑ load .json file</button>
+        <button class="btn small" id="btnDownloadFile"></button>
+        <button class="btn small" id="btnUploadFile"></button>
       </div>
       <div class="setting-desc">a real file on disk — survives clearing your browser, and works regardless of future site updates.</div>
       <input type="file" id="fileInput" accept=".json,application/json" style="display:none;">
+      <div class="field-row" style="margin-top:10px;">
+        <label>or paste json directly</label>
+        <textarea id="pasteJsonArea" rows="3" placeholder="paste a downloaded project json here"></textarea>
+      </div>
+      <button class="btn small" id="btnLoadPasted" style="width:100%;">load pasted json</button>
 
       <div style="font-size:11px;color:var(--text-dim);margin:16px 0 6px;border-top:1px solid var(--border-soft);padding-top:12px;">saved on this device</div>
       <div class="field-row split">
@@ -373,6 +388,51 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
 <div class="toast" id="toast"></div>
 
 <script>
+const ICON_PATHS = {
+  gear: '<circle cx="8" cy="8" r="2.3"/><path d="M8 1.6v2M8 12.4v2M1.6 8h2M12.4 8h2M3.6 3.6l1.3 1.3M11.1 11.1l1.3 1.3M3.6 12.4l1.3-1.3M11.1 4.9l1.3-1.3"/>',
+  save: '<path d="M8 2v7.3M8 9.3L5.2 6.5M8 9.3l2.8-2.8M3 11.3v1.7a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1.7"/>',
+  upload: '<path d="M8 12.5V4.7M8 4.7L5.2 7.5M8 4.7l2.8 2.8M3 11.3v1.7a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1.7"/>',
+  expand: '<path d="M2 6.5V2h4.5M14 9.5V14H9.5M2 2l5 5M14 14l-5-5"/>',
+  dock: '<path d="M6.5 2v4.5H2M9.5 14V9.5H14M6.5 6.5L2 2M9.5 9.5L14 14"/>',
+  up: '<path d="M4 10l4-4 4 4"/>',
+  down: '<path d="M4 6l4 4 4-4"/>',
+  close: '<path d="M4 4l8 8M12 4l-8 8"/>',
+  trash: '<path d="M3 4.3h10M6.3 4.3V3a1 1 0 0 1 1-1h1.4a1 1 0 0 1 1 1v1.3M4.6 4.3l.6 8a1 1 0 0 0 1 .9h3.6a1 1 0 0 0 1-.9l.6-8"/>',
+  reload: '<path d="M13 8A5 5 0 1 1 11.4 4.5M13 2v3.3h-3.3"/>',
+  check: '<path d="M3.3 8.3l3 3 6-7"/>',
+  linkarrow: '<path d="M6 10L10 6M10 6H6.6M10 6v3.4"/>',
+  drag: '<circle cx="5" cy="4" r=".9"/><circle cx="5" cy="8" r=".9"/><circle cx="5" cy="12" r=".9"/><circle cx="9" cy="4" r=".9"/><circle cx="9" cy="8" r=".9"/><circle cx="9" cy="12" r=".9"/>'
+};
+function icon(name, size) {
+  return `<svg width="${size||14}" height="${size||14}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${ICON_PATHS[name]||''}</svg>`;
+}
+function customCheckbox(opts) {
+  const idAttr = opts.id ? ` id="${opts.id}"` : '';
+  const kAttr = opts.dataK ? ` data-k="${opts.dataK}"` : '';
+  return `<label class="inline-check"><input type="checkbox"${idAttr}${kAttr} ${opts.checked?'checked':''}><span class="cbx-box">${icon('check',10)}</span><span>${opts.label}</span></label>`;
+}
+function customConfirm(message, opts) {
+  opts = opts || {};
+  return new Promise(resolve => {
+    const ov = document.createElement('div');
+    ov.className = 'overlay open';
+    ov.innerHTML = `<div class="overlay-panel" style="width:min(380px,90vw)"><div class="overlay-body" style="padding-top:20px;">
+      <div style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:16px;">${escapeHtml(message)}</div>
+      <div class="overlay-actions" style="justify-content:flex-end;">
+        <button class="btn small" id="ccCancel">${opts.cancelLabel||'cancel'}</button>
+        <button class="btn small ${opts.danger?'danger':'primary'}" id="ccOk">${opts.okLabel||'confirm'}</button>
+      </div></div></div>`;
+    document.body.appendChild(ov);
+    const cleanup = v => { ov.remove(); document.removeEventListener('keydown', onEsc); resolve(v); };
+    function onEsc(e) { if (e.key === 'Escape') cleanup(false); }
+    ov.querySelector('#ccCancel').onclick = () => cleanup(false);
+    ov.querySelector('#ccOk').onclick = () => cleanup(true);
+    ov.onclick = e => { if (e.target === ov) cleanup(false); };
+    document.addEventListener('keydown', onEsc);
+  });
+}
+let dragSrcIndex = null;
+
 const LIMITS = { title:256, description:4096, fieldName:256, fieldValue:1024, footerText:2048, authorName:256, fields:25, embeds:10, total:6000, blockText:4000 };
 const PRESET_COLORS = ['#6e7aec','#c15b45','#6fae7c','#d4a24e','#8a6fd6','#4fa3c1','#e0e0e0','#2b2d31'];
 const DRAFT_KEY = 'vxpe_embeds_draft_v2';
@@ -381,7 +441,7 @@ const LIBRARY_KEY = 'vxpe_embeds_library';
 
 function emptyContainer() {
   return {
-    title: '', url: '', description: '', color: '#6e7aec', spoiler: false,
+    name: '', title: '', url: '', description: '', color: '#6e7aec', spoiler: false,
     author: { name: '', url: '', icon_url: '' },
     thumbnail: { url: '' },
     image: { url: '' },
@@ -499,10 +559,11 @@ function renderLibraryList() {
   lib.items.slice().sort((a,b)=>b.savedAt-a.savedAt).forEach(item => {
     const row = document.createElement('div');
     row.style.cssText = 'display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border-soft);';
-    row.innerHTML = `<span style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(item.name)}</span><span style="font-size:10px;color:var(--text-faint);flex-shrink:0;">${new Date(item.savedAt).toLocaleDateString()}</span><button class="icon-btn" data-act="load" title="load">↺</button><button class="icon-btn danger" data-act="del" title="delete">✕</button>`;
+    row.innerHTML = `<span style="flex:1;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(item.name)}</span><span style="font-size:10px;color:var(--text-faint);flex-shrink:0;">${new Date(item.savedAt).toLocaleDateString()}</span><button class="icon-btn" data-act="load" title="load">${icon('reload',12)}</button><button class="icon-btn danger" data-act="del" title="delete">${icon('trash',12)}</button>`;
     row.querySelector('[data-act="load"]').onclick = () => { applySnapshot(item.snapshot); showToast('loaded "' + item.name + '"', 'ok'); document.getElementById('storageOverlay').classList.remove('open'); };
-    row.querySelector('[data-act="del"]').onclick = () => {
-      if (!confirm('delete "' + item.name + '"?')) return;
+    row.querySelector('[data-act="del"]').onclick = async () => {
+      const ok = await customConfirm('delete "' + item.name + '"?', { danger: true, okLabel: 'delete' });
+      if (!ok) return;
       const l = loadLibrary(); l.items = l.items.filter(x => x.id !== item.id); saveLibrary(l); renderLibraryList();
     };
     wrap.appendChild(row);
@@ -546,27 +607,44 @@ function renderEmbedList() {
   state.embeds.forEach((em, i) => {
     const item = document.createElement('div');
     item.className = 'embed-item' + (i === state.activeIndex ? ' active' : '');
+    item.draggable = true;
     let label = 'untitled';
-    if (state.format === 'embed') {
+    if (em.name) {
+      label = em.name.slice(0,22);
+    } else if (state.format === 'embed') {
       label = em.title ? em.title.slice(0,22) : (em.description ? em.description.slice(0,22) : 'untitled');
     } else {
       const firstText = em.blocks.find(b => b.type === 'text');
       label = firstText && firstText.content ? firstText.content.slice(0,22) : (em.blocks.length ? em.blocks[0].type : 'empty container');
     }
-    item.innerHTML = `<span class="swatch" style="background:${em.color || '#6e7aec'}"></span><span class="name">${escapeHtml(label)}</span><span class="idx">${i+1}</span>`;
+    item.innerHTML = `<span class="drag-handle" title="drag to reorder">${icon('drag',12)}</span><span class="swatch" style="background:${em.color || '#6e7aec'}"></span><span class="name">${escapeHtml(label)}</span><span class="idx">${i+1}</span>`;
     item.onclick = () => { state.activeIndex = i; renderAll(); };
+    item.addEventListener('dragstart', e => { dragSrcIndex = i; item.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; });
+    item.addEventListener('dragend', () => { item.classList.remove('dragging'); wrap.querySelectorAll('.embed-item').forEach(el => el.classList.remove('drag-over')); dragSrcIndex = null; });
+    item.addEventListener('dragover', e => { e.preventDefault(); item.classList.add('drag-over'); });
+    item.addEventListener('dragleave', () => item.classList.remove('drag-over'));
+    item.addEventListener('drop', e => {
+      e.preventDefault();
+      item.classList.remove('drag-over');
+      const from = dragSrcIndex, to = i;
+      if (from === null || from === to) return;
+      const [moved] = state.embeds.splice(from, 1);
+      state.embeds.splice(to, 0, moved);
+      if (state.activeIndex === from) state.activeIndex = to;
+      else if (from < state.activeIndex && to >= state.activeIndex) state.activeIndex--;
+      else if (from > state.activeIndex && to <= state.activeIndex) state.activeIndex++;
+      renderAll(); scheduleSave();
+    });
     wrap.appendChild(item);
   });
   document.getElementById('embedCount').textContent = `${state.embeds.length} / ${LIMITS.embeds}`;
   document.getElementById('btnAddEmbed').disabled = state.embeds.length >= LIMITS.embeds;
   document.getElementById('formHeader').textContent = (state.format === 'components' ? 'container ' : 'embed ') + (state.activeIndex + 1);
-  document.getElementById('msgContent').closest('.field-row').style.opacity = state.format === 'components' ? '.4' : '1';
-  document.getElementById('msgContent').disabled = state.format === 'components';
   const existingNote = document.querySelector('.content-note');
   if (state.format === 'components' && !existingNote) {
     const note = document.createElement('div');
     note.className = 'content-note';
-    note.textContent = 'components v2 messages can\u2019t use content — add a text block in a container instead.';
+    note.textContent = 'components v2 can\u2019t attach this text to the embed itself — if you fill this in, it\u2019s sent as its own plain message right before the container.';
     document.getElementById('msgContentDock').appendChild(note);
   } else if (state.format !== 'components' && existingNote) {
     existingNote.remove();
@@ -586,6 +664,8 @@ function renderEmbedForm() {
   if (!em) return;
   const scroll = document.getElementById('formScroll');
   scroll.innerHTML = `
+    <div class="field-row"><label>sidebar label <span class="limit" style="opacity:.55">(not sent to discord)</span></label>
+      <input type="text" id="f_name" value="${escapeHtml(em.name || '')}" placeholder="e.g. welcome message"></div>
     <div class="field-row"><label>title ${limitLabel(em.title.length, LIMITS.title)}</label>
       <input type="text" id="f_title" value="${escapeHtml(em.title)}" placeholder="embed title" maxlength="${LIMITS.title}"></div>
     <div class="field-row"><label>title link</label>
@@ -619,7 +699,7 @@ function renderEmbedForm() {
     <div class="section-body${sectionState.footer?' open':''}" id="sec_footer">
       <div class="field-row"><label>footer text ${limitLabel(em.footer.text.length, LIMITS.footerText)}</label><input type="text" id="f_footerText" value="${escapeHtml(em.footer.text)}" placeholder="footer text" maxlength="${LIMITS.footerText}"></div>
       <div class="field-row"><label>footer icon url</label><input type="text" id="f_footerIcon" value="${escapeHtml(em.footer.icon_url)}" placeholder="https://..."></div>
-      <label class="inline-check"><input type="checkbox" id="f_timestamp" ${em.timestamp?'checked':''}> include current timestamp</label>
+      <label class="inline-check"><input type="checkbox" id="f_timestamp" ${em.timestamp?'checked':''}><span class="cbx-box">${icon('check',10)}</span><span>include current timestamp</span></label>
     </div>
 
     <div style="height:16px"></div>
@@ -632,7 +712,7 @@ function renderEmbedForm() {
   scroll.querySelectorAll('.section-toggle').forEach(el => { el.onclick = () => { sectionState[el.dataset.sec] = !sectionState[el.dataset.sec]; renderForm(); }; });
 
   renderFields(em);
-  bind('f_title', v=>em.title=v); bind('f_url', v=>em.url=v); bind('f_desc', v=>em.description=v);
+  bind('f_name', v=>em.name=v); bind('f_title', v=>em.title=v); bind('f_url', v=>em.url=v); bind('f_desc', v=>em.description=v);
   bind('f_colorHex', v=>{em.color=v; document.getElementById('f_color').value=v; renderEmbedList(); renderPreview(); scheduleSave();});
   document.getElementById('f_color').oninput = e=>{em.color=e.target.value; document.getElementById('f_colorHex').value=e.target.value; renderEmbedList(); renderPreview(); scheduleSave();};
   bind('f_authorName', v=>em.author.name=v); bind('f_authorUrl', v=>em.author.url=v); bind('f_authorIcon', v=>em.author.icon_url=v);
@@ -653,11 +733,11 @@ function renderFields(em) {
     card.className = 'field-card';
     card.innerHTML = `
       <div class="field-card-head"><span class="tag">field ${i+1}</span><div class="field-card-actions">
-        <button class="icon-btn" data-act="up" title="move up">↑</button><button class="icon-btn" data-act="down" title="move down">↓</button><button class="icon-btn danger" data-act="del" title="delete">✕</button>
+        <button class="icon-btn" data-act="up" title="move up">${icon('up',12)}</button><button class="icon-btn" data-act="down" title="move down">${icon('down',12)}</button><button class="icon-btn danger" data-act="del" title="delete">${icon('trash',12)}</button>
       </div></div>
       <div class="field-row"><label>name ${limitLabel(f.name.length, LIMITS.fieldName)}</label><input type="text" data-k="name" value="${escapeHtml(f.name)}" placeholder="field name" maxlength="${LIMITS.fieldName}"></div>
       <div class="field-row"><label>value ${limitLabel(f.value.length, LIMITS.fieldValue)}</label><textarea data-k="value" rows="2" placeholder="field value" maxlength="${LIMITS.fieldValue}">${escapeHtml(f.value)}</textarea></div>
-      <label class="inline-check"><input type="checkbox" data-k="inline" ${f.inline?'checked':''}> inline</label>
+      <label class="inline-check"><input type="checkbox" data-k="inline" ${f.inline?'checked':''}><span class="cbx-box">${icon('check',10)}</span><span>inline</span></label>
     `;
     card.querySelector('[data-k="name"]').oninput = e=>{f.name=e.target.value; renderPreview(); scheduleSave();};
     card.querySelector('[data-k="value"]').oninput = e=>{f.value=e.target.value; renderPreview(); scheduleSave();};
@@ -675,7 +755,7 @@ function newBlock(type) {
   if (type==='separator') return {type:'separator', divider:true, spacing:'small'};
   if (type==='section') return {type:'section', text:'', accessoryType:'none', accessoryButton:{label:'',style:'primary',url:'',customId:'',emoji:''}, accessoryThumb:{url:''}};
   if (type==='buttons') return {type:'buttons', items:[{label:'button',style:'primary',url:'',customId:'',emoji:''}]};
-  if (type==='image') return {type:'image', url:'', spoiler:false};
+  if (type==='gallery') return {type:'gallery', items:[{url:'', spoiler:false}]};
 }
 
 function renderComponentsForm() {
@@ -683,17 +763,19 @@ function renderComponentsForm() {
   if (!em) return;
   const scroll = document.getElementById('formScroll');
   scroll.innerHTML = `
+    <div class="field-row"><label>sidebar label <span class="limit" style="opacity:.55">(not sent to discord)</span></label>
+      <input type="text" id="f_name" value="${escapeHtml(em.name || '')}" placeholder="e.g. welcome message"></div>
     <div class="field-row"><label>container color (accent bar)</label>
       <div class="color-row"><input type="color" id="f_color" value="${em.color}"><input type="text" id="f_colorHex" value="${em.color}" style="width:90px;padding:7px 8px;border-radius:4px;"></div>
       <div class="swatches" id="swatches"></div></div>
-    <label class="inline-check"><input type="checkbox" id="f_cspoiler" ${em.spoiler?'checked':''}> mark whole container as spoiler</label>
+    <label class="inline-check"><input type="checkbox" id="f_cspoiler" ${em.spoiler?'checked':''}><span class="cbx-box">${icon('check',10)}</span><span>mark whole container as spoiler</span></label>
 
     <div class="quick-add" id="quickAdd">
       <button data-t="text">+ text</button>
       <button data-t="separator">+ separator</button>
       <button data-t="section">+ section</button>
       <button data-t="buttons">+ buttons</button>
-      <button data-t="image">+ image</button>
+      <button data-t="gallery">+ media gallery</button>
     </div>
     <div id="blocksWrap"></div>
 
@@ -702,6 +784,7 @@ function renderComponentsForm() {
   `;
   const preset = document.getElementById('swatches');
   PRESET_COLORS.forEach(c => { const b=document.createElement('button'); b.style.background=c; b.title=c; b.onclick=()=>{em.color=c;renderAll();}; preset.appendChild(b); });
+  document.getElementById('f_name').oninput = e => { em.name = e.target.value; renderEmbedList(); scheduleSave(); };
   document.getElementById('f_colorHex').oninput = e=>{em.color=e.target.value; document.getElementById('f_color').value=e.target.value; renderAll(); scheduleSave();};
   document.getElementById('f_color').oninput = e=>{em.color=e.target.value; document.getElementById('f_colorHex').value=e.target.value; renderAll(); scheduleSave();};
   document.getElementById('f_cspoiler').onchange = e=>{em.spoiler=e.target.checked; renderPreview(); scheduleSave();};
@@ -724,13 +807,13 @@ function renderBlocks(em) {
     const card = document.createElement('div');
     card.className = 'field-card';
     let inner = `<div class="field-card-head"><span class="tag">${b.type}</span><div class="field-card-actions">
-      <button class="icon-btn" data-act="up" title="move up">↑</button><button class="icon-btn" data-act="down" title="move down">↓</button><button class="icon-btn danger" data-act="del" title="delete">✕</button>
+      <button class="icon-btn" data-act="up" title="move up">${icon('up',12)}</button><button class="icon-btn" data-act="down" title="move down">${icon('down',12)}</button><button class="icon-btn danger" data-act="del" title="delete">${icon('trash',12)}</button>
     </div></div>`;
 
     if (b.type === 'text') {
       inner += `<div class="field-row"><label>text ${limitLabel(b.content.length, LIMITS.blockText)}</label><textarea data-k="content" rows="3" placeholder="markdown text — **bold**, *italic*, [link](url)">${escapeHtml(b.content)}</textarea></div>`;
     } else if (b.type === 'separator') {
-      inner += `<label class="inline-check" style="margin-top:0"><input type="checkbox" data-k="divider" ${b.divider?'checked':''}> show divider line</label>
+      inner += `<label class="inline-check" style="margin-top:0"><input type="checkbox" data-k="divider" ${b.divider?'checked':''}><span class="cbx-box">${icon('check',10)}</span><span>show divider line</span></label>
         <div class="field-row" style="margin-top:8px"><label>spacing</label><select data-k="spacing"><option value="small" ${b.spacing==='small'?'selected':''}>small</option><option value="large" ${b.spacing==='large'?'selected':''}>large</option></select></div>`;
     } else if (b.type === 'section') {
       inner += `<div class="field-row"><label>text</label><textarea data-k="text" rows="2" placeholder="section text">${escapeHtml(b.text)}</textarea></div>
@@ -747,9 +830,8 @@ function renderBlocks(em) {
       }
     } else if (b.type === 'buttons') {
       inner += `<div id="btnItems_${i}"></div><button class="add-field-btn" data-act="addbtn" ${b.items.length>=5?'disabled':''}>+ add button</button>`;
-    } else if (b.type === 'image') {
-      inner += `<div class="field-row"><label>image url</label><input type="text" data-k="url" value="${escapeHtml(b.url)}" placeholder="https://..."></div>
-        <label class="inline-check"><input type="checkbox" data-k="spoiler" ${b.spoiler?'checked':''}> spoiler</label>`;
+    } else if (b.type === 'gallery') {
+      inner += `<div id="galleryItems_${i}"></div><button class="add-field-btn" data-act="addimg" ${b.items.length>=10?'disabled':''}>+ add image</button>`;
     }
 
     card.innerHTML = inner;
@@ -767,14 +849,13 @@ function renderBlocks(em) {
         else if (k==='btnStyle') { b.accessoryButton.style=v; renderBlocks(em); }
         else if (k==='btnTarget') { if (b.accessoryButton.style==='link') b.accessoryButton.url=v; else b.accessoryButton.customId=v; }
         else if (k==='thumbUrl') b.accessoryThumb.url=v;
-        else if (k==='url') b.url=v;
-        else if (k==='spoiler') b.spoiler=v;
         renderPreview(); scheduleSave();
       };
       el.addEventListener(el.tagName==='SELECT' || el.type==='checkbox' ? 'change' : 'input', handler);
     });
 
     if (b.type === 'buttons') renderButtonItems(em, b, i, card);
+    if (b.type === 'gallery') renderGalleryItems(em, b, i, card);
 
     card.querySelector('[data-act="del"]').onclick = () => { em.blocks.splice(i,1); renderComponentsForm(); renderPreview(); scheduleSave(); };
     card.querySelector('[data-act="up"]').onclick = () => { if(i>0){[em.blocks[i-1],em.blocks[i]]=[em.blocks[i],em.blocks[i-1]]; renderComponentsForm(); renderPreview(); scheduleSave();} };
@@ -788,6 +869,31 @@ function buttonStyleOptions(sel) {
   return ['primary','secondary','success','danger','link'].map(s => `<option value="${s}" ${sel===s?'selected':''}>${s}</option>`).join('');
 }
 
+function renderGalleryItems(em, block, blockIndex, card) {
+  const wrap = card.querySelector(`#galleryItems_${blockIndex}`);
+  wrap.innerHTML = '';
+  block.items.forEach((img, j) => {
+    const row = document.createElement('div');
+    row.style.cssText = 'border:1px solid var(--border-soft);border-radius:4px;padding:8px;margin-bottom:6px;';
+    row.innerHTML = `
+      <div class="field-card-head" style="margin-bottom:6px;"><span class="tag">image ${j+1}</span><button class="icon-btn danger" data-act="delimg">${icon('trash',12)}</button></div>
+      <div class="field-row"><label>image url</label><input type="text" data-gk="url" value="${escapeHtml(img.url)}" placeholder="https://..."></div>
+      <label class="inline-check"><input type="checkbox" data-gk="spoiler" ${img.spoiler?'checked':''}><span class="cbx-box">${icon('check',10)}</span><span>spoiler</span></label>
+    `;
+    row.querySelectorAll('[data-gk]').forEach(el => {
+      const k = el.dataset.gk;
+      el.addEventListener(el.type==='checkbox'?'change':'input', () => {
+        if (k==='url') img.url = el.value; else img.spoiler = el.checked;
+        renderPreview(); scheduleSave();
+      });
+    });
+    row.querySelector('[data-act="delimg"]').onclick = () => { block.items.splice(j,1); renderComponentsForm(); renderPreview(); scheduleSave(); };
+    wrap.appendChild(row);
+  });
+  const addBtn = card.querySelector('[data-act="addimg"]');
+  if (addBtn) addBtn.onclick = () => { if (block.items.length<10) { block.items.push({url:'',spoiler:false}); renderComponentsForm(); renderPreview(); scheduleSave(); } };
+}
+
 function renderButtonItems(em, block, blockIndex, card) {
   const wrap = card.querySelector(`#btnItems_${blockIndex}`);
   wrap.innerHTML = '';
@@ -795,7 +901,7 @@ function renderButtonItems(em, block, blockIndex, card) {
     const row = document.createElement('div');
     row.style.cssText = 'border:1px solid var(--border-soft);border-radius:4px;padding:8px;margin-bottom:6px;';
     row.innerHTML = `
-      <div class="field-card-head" style="margin-bottom:6px;"><span class="tag">button ${j+1}</span><button class="icon-btn danger" data-act="delbtn">✕</button></div>
+      <div class="field-card-head" style="margin-bottom:6px;"><span class="tag">button ${j+1}</span><button class="icon-btn danger" data-act="delbtn">${icon('trash',12)}</button></div>
       <div class="field-row split"><div><label>label</label><input type="text" data-bk="label" value="${escapeHtml(btn.label)}"></div><div><label>style</label><select data-bk="style">${buttonStyleOptions(btn.style)}</select></div></div>
       <div class="field-row"><label>${btn.style==='link'?'url':'custom id'}</label><input type="text" data-bk="target" value="${escapeHtml(btn.style==='link'?btn.url:btn.customId)}" placeholder="${btn.style==='link'?'https://...':'my_button_id'}"></div>
       <div class="field-row"><label>emoji (optional)</label><input type="text" data-bk="emoji" value="${escapeHtml(btn.emoji)}" placeholder="⭐"></div>
@@ -889,8 +995,11 @@ function renderContainerHtml(em) {
       h += `</div>`;
     } else if (b.type === 'buttons') {
       h += `<div class="dc-btn-row">${b.items.map(renderButtonPill).join('')}</div>`;
-    } else if (b.type === 'image' && b.url) {
-      h += spoilerImg(b.url, b.spoiler, 'dc-embed-image');
+    } else if (b.type === 'gallery') {
+      const imgs = b.items.filter(x => x.url);
+      if (imgs.length) {
+        h += `<div class="dc-gallery-grid" style="grid-template-columns:repeat(${Math.min(imgs.length,3)},1fr);">${imgs.map(x => spoilerImg(x.url, x.spoiler, 'dc-gallery-img')).join('')}</div>`;
+      }
     }
     h += `</div>`;
   });
@@ -899,7 +1008,7 @@ function renderContainerHtml(em) {
 }
 
 function renderButtonPill(btn) {
-  const linkArrow = btn.style === 'link' ? ' ↗' : '';
+  const linkArrow = btn.style === 'link' ? ` ${icon('linkarrow',11)}` : '';
   const emoji = btn.emoji ? escapeHtml(btn.emoji) + ' ' : '';
   return `<span class="dc-pill style-${btn.style}">${emoji}${escapeHtml(btn.label || 'button')}${linkArrow}</span>`;
 }
@@ -967,7 +1076,13 @@ function buttonComponent(btn) {
   return c;
 }
 
-function openJsonOverlay() { document.getElementById('jsonArea').value = JSON.stringify(buildPayload(), null, 2); document.getElementById('jsonOverlay').classList.add('open'); }
+function openJsonOverlay() {
+  document.getElementById('jsonArea').value = JSON.stringify(buildPayload(), null, 2);
+  document.getElementById('jsonNote').textContent = state.format === 'components'
+    ? 'sending this yourself? components v2 payloads need ?with_components=true appended to the webhook url, or discord rejects it as empty — the built-in send button already handles this.'
+    : '';
+  document.getElementById('jsonOverlay').classList.add('open');
+}
 
 function loadFromJson(raw) {
   try {
@@ -1023,18 +1138,45 @@ function componentToBlock(c) {
 
 /* ---------- send ---------- */
 async function sendWebhook() {
-  const url = document.getElementById('webhookUrl').value.trim();
-  if (!url) { showToast('paste a webhook url first', 'err'); return; }
-  if (state.settings.confirmSend && !confirm('send this to discord now?')) return;
-  try { localStorage.setItem(WEBHOOK_KEY, url); } catch (e) {}
+  const urlRaw = document.getElementById('webhookUrl').value.trim();
+  if (!urlRaw) { showToast('paste a webhook url first', 'err'); return; }
+  if (state.settings.confirmSend) {
+    const ok = await customConfirm('send this to discord now?', { okLabel: 'send' });
+    if (!ok) return;
+  }
+  try { localStorage.setItem(WEBHOOK_KEY, urlRaw); } catch (e) {}
+
+  const isComponents = state.format === 'components';
   const payload = buildPayload();
   if (!payload.content && !payload.embeds && !payload.components) { showToast('nothing to send', 'err'); return; }
+
   const btn = document.getElementById('btnSend');
-  btn.disabled = true; btn.textContent = 'sending…';
+  btn.disabled = true;
+
   try {
-    const res = await fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-    if (res.ok || res.status===204) showToast('sent', 'ok');
-    else { const t = await res.text().catch(()=> ''); showToast(`discord returned ${res.status}${t?' — '+t.slice(0,120):''}`, 'err'); }
+    if (isComponents && state.content.trim()) {
+      btn.textContent = 'sending message…';
+      const msgPayload = { content: state.content };
+      if (state.username.trim()) msgPayload.username = state.username;
+      if (state.avatar_url.trim()) msgPayload.avatar_url = state.avatar_url;
+      const r1 = await fetch(urlRaw, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(msgPayload) });
+      if (!r1.ok && r1.status !== 204) {
+        const t = await r1.text().catch(()=> '');
+        showToast(`message send failed (${r1.status})${t?' — '+t.slice(0,100):''}`, 'err');
+        return;
+      }
+    }
+
+    if (payload.embeds || payload.components) {
+      btn.textContent = 'sending…';
+      // components v2 payloads require this query param, or discord treats the message as empty
+      const sendUrl = isComponents ? urlRaw + (urlRaw.includes('?') ? '&' : '?') + 'with_components=true' : urlRaw;
+      const res = await fetch(sendUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+      if (res.ok || res.status===204) showToast('sent', 'ok');
+      else { const t = await res.text().catch(()=> ''); showToast(`discord returned ${res.status}${t?' — '+t.slice(0,120):''}`, 'err'); }
+    } else {
+      showToast('sent', 'ok');
+    }
   } catch (e) { showToast('send failed — check the url and your connection', 'err'); }
   finally { btn.disabled=false; btn.textContent='send'; }
 }
@@ -1047,7 +1189,7 @@ function showToast(msg, kind) { const t=document.getElementById('toast'); t.text
 function createFloatingPanel(title, onClose) {
   const panel = document.createElement('div');
   panel.className = 'floating-panel';
-  panel.innerHTML = `<div class="fp-header"><div class="fp-title"><span class="grip-dots"><span></span><span></span><span></span><span></span><span></span><span></span></span><span>${title}</span></div><button class="fp-close">dock ↙</button></div><div class="fp-body"></div><div class="fp-resize"><div class="grip"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>`;
+  panel.innerHTML = `<div class="fp-header"><div class="fp-title"><span style="display:flex;color:var(--text-faint);">${icon('drag',13)}</span><span>${title}</span></div><button class="fp-close">${icon('dock',12)}dock</button></div><div class="fp-body"></div><div class="fp-resize"><div class="grip"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>`;
   document.body.appendChild(panel);
   const header = panel.querySelector('.fp-header');
   const body = panel.querySelector('.fp-body');
@@ -1162,8 +1304,9 @@ document.querySelectorAll('#formatSeg .seg-opt').forEach(el => {
 document.getElementById('setConfirm').onchange = e => { state.settings.confirmSend = e.target.checked; scheduleSave(); };
 document.getElementById('setCompact').onchange = e => { state.settings.compactPreview = e.target.checked; renderPreview(); scheduleSave(); };
 document.getElementById('setAccent').oninput = e => { state.settings.uiAccent = e.target.value; document.documentElement.style.setProperty('--accent', e.target.value); scheduleSave(); };
-document.getElementById('btnResetAll').onclick = () => {
-  if (!confirm('reset everything? this clears all containers, message text and settings.')) return;
+document.getElementById('btnResetAll').onclick = async () => {
+  const ok = await customConfirm('reset everything? this clears all containers, message text and settings.', { danger: true, okLabel: 'reset' });
+  if (!ok) return;
   try { localStorage.removeItem(DRAFT_KEY); } catch (e) {}
   state = { format:'embed', content:'', username:'', avatar_url:'', embeds:[emptyContainer()], activeIndex:0, settings:{confirmSend:false, compactPreview:false, uiAccent:'#6e7aec'} };
   document.documentElement.style.setProperty('--accent', state.settings.uiAccent);
@@ -1211,9 +1354,30 @@ document.getElementById('btnSaveAs').onclick = () => {
   renderLibraryList();
   showToast('saved', 'ok');
 };
+document.getElementById('btnLoadPasted').onclick = () => {
+  const raw = document.getElementById('pasteJsonArea').value.trim();
+  if (!raw) { showToast('paste something first', 'err'); return; }
+  try {
+    const parsed = JSON.parse(raw);
+    applySnapshot(parsed.snapshot || parsed);
+    document.getElementById('pasteJsonArea').value = '';
+    showToast('loaded from pasted json', 'ok');
+    document.getElementById('storageOverlay').classList.remove('open');
+  } catch (e) { showToast('invalid json', 'err'); }
+};
 
 /* ---------- wiring ---------- */
 function renderAll() { renderEmbedList(); renderForm(); renderPreview(); }
+
+document.getElementById('btnSettings').innerHTML = icon('gear');
+document.getElementById('btnStorage').innerHTML = icon('save') + 'save';
+document.getElementById('btnPopoutContent').innerHTML = icon('expand', 13);
+document.getElementById('btnPopoutPreview').innerHTML = icon('expand', 13);
+document.getElementById('jsonClose').innerHTML = icon('close', 13);
+document.getElementById('settingsClose').innerHTML = icon('close', 13);
+document.getElementById('storageClose').innerHTML = icon('close', 13);
+document.getElementById('btnDownloadFile').innerHTML = icon('save') + 'download .json';
+document.getElementById('btnUploadFile').innerHTML = icon('upload') + 'load .json file';
 
 document.getElementById('btnAddEmbed').onclick = () => { if (state.embeds.length>=LIMITS.embeds) return; state.embeds.push(emptyContainer()); state.activeIndex=state.embeds.length-1; renderAll(); scheduleSave(); };
 document.getElementById('msgContent').oninput = e => { state.content=e.target.value; renderPreview(); scheduleSave(); };
