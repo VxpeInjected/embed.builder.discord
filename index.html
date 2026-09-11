@@ -165,7 +165,15 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
 .dc-username { color: #f2f3f5; font-size: 15px; font-weight: 600; }
 .dc-tag { background: #5865F2; color: #fff; font-size: 9.5px; font-weight: 600; padding: 1px 4px; border-radius: 3px; letter-spacing: .02em; }
 .dc-time { color: #949ba4; font-size: 11.5px; }
-.dc-content { color: #dbdee1; font-size: 14.5px; line-height: 1.375; white-space: pre-wrap; word-break: break-word; margin-bottom: 4px; }
+.dc-content { color: #dbdee1; font-size: 14.5px; line-height: 1.375; word-break: break-word; margin-bottom: 4px; }
+.dc-line { min-height: 1.375em; }
+.dc-h1 { font-size: 20px; font-weight: 700; line-height: 1.3; }
+.dc-h2 { font-size: 17px; font-weight: 700; line-height: 1.3; }
+.dc-h3 { font-size: 14.5px; font-weight: 700; line-height: 1.3; }
+.dc-subtext { font-size: 11.5px; color: #949ba4; line-height: 1.4; }
+.dc-quote { border-left: 3px solid #4e5058; padding-left: 10px; margin: 2px 0; }
+.dc-code-inline { background: #1e1f22; border-radius: 3px; padding: 1px 4px; font-family: ui-monospace, monospace; font-size: .9em; }
+.dc-code-block { display: block; background: #1e1f22; border-radius: 4px; padding: 8px 10px; font-family: ui-monospace, monospace; font-size: 12.5px; white-space: pre-wrap; margin: 3px 0; }
 .dc-embed, .dc-container { display: flex; max-width: 432px; border-radius: 4px; background: #2b2d31; margin-top: 8px; overflow: hidden; }
 .dc-embed-bar { width: 4px; flex-shrink: 0; background: #202225; }
 .dc-embed-body, .dc-container-body { padding: 8px 12px 12px; min-width: 0; flex: 1; }
@@ -582,11 +590,10 @@ function downloadProjectFile() {
 
 function escapeHtml(str) { return (str || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-function renderMarkdown(raw) {
+function renderInline(raw) {
   if (!raw) return '';
   let s = escapeHtml(raw);
-  s = s.replace(/```([\s\S]*?)```/g, (m, code) => `<code style="display:block;background:#1e1f22;border-radius:4px;padding:6px 8px;font-family:ui-monospace,monospace;font-size:12.5px;white-space:pre-wrap;">${code}</code>`);
-  s = s.replace(/`([^`]+)`/g, '<code style="background:#1e1f22;border-radius:3px;padding:1px 4px;font-family:ui-monospace,monospace;font-size:.9em;">$1</code>');
+  s = s.replace(/`([^`]+)`/g, '<code class="dc-code-inline">$1</code>');
   s = s.replace(/\*\*\*(.+?)\*\*\*/g, '<b><i>$1</i></b>');
   s = s.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
   s = s.replace(/__(.+?)__/g, '<u>$1</u>');
@@ -594,6 +601,40 @@ function renderMarkdown(raw) {
   s = s.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<i>$1</i>');
   s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
   return s;
+}
+
+function renderMarkdown(raw) {
+  if (!raw) return '';
+
+  // fenced code blocks are pulled out first so headers/quotes inside them aren't parsed
+  const codeBlocks = [];
+  const working = raw.replace(/```([\s\S]*?)```/g, (m, code) => {
+    codeBlocks.push(code.replace(/^\n/, '').replace(/\n$/, ''));
+    return `\u0000CB${codeBlocks.length - 1}\u0000`;
+  });
+
+  const lines = working.split('\n');
+  const out = [];
+  let quoteBuf = [];
+  const flushQuote = () => { if (quoteBuf.length) { out.push(`<div class="dc-quote">${quoteBuf.join('<br>')}</div>`); quoteBuf = []; } };
+
+  lines.forEach(line => {
+    const codeMatch = line.match(/^\u0000CB(\d+)\u0000$/);
+    if (codeMatch) { flushQuote(); out.push(`<code class="dc-code-block">${escapeHtml(codeBlocks[+codeMatch[1]])}</code>`); return; }
+
+    const q = line.match(/^>\s?(.*)$/);
+    if (q) { quoteBuf.push(renderInline(q[1])); return; }
+    flushQuote();
+
+    let m;
+    if ((m = line.match(/^###\s+(.*)$/))) out.push(`<div class="dc-h3">${renderInline(m[1])}</div>`);
+    else if ((m = line.match(/^##\s+(.*)$/))) out.push(`<div class="dc-h2">${renderInline(m[1])}</div>`);
+    else if ((m = line.match(/^#\s+(.*)$/))) out.push(`<div class="dc-h1">${renderInline(m[1])}</div>`);
+    else if ((m = line.match(/^-#\s+(.*)$/))) out.push(`<div class="dc-subtext">${renderInline(m[1])}</div>`);
+    else out.push(`<div class="dc-line">${renderInline(line)}</div>`);
+  });
+  flushQuote();
+  return out.join('');
 }
 
 function timeAgoLabel() { return new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }); }
@@ -785,8 +826,8 @@ function renderComponentsForm() {
   const preset = document.getElementById('swatches');
   PRESET_COLORS.forEach(c => { const b=document.createElement('button'); b.style.background=c; b.title=c; b.onclick=()=>{em.color=c;renderAll();}; preset.appendChild(b); });
   document.getElementById('f_name').oninput = e => { em.name = e.target.value; renderEmbedList(); scheduleSave(); };
-  document.getElementById('f_colorHex').oninput = e=>{em.color=e.target.value; document.getElementById('f_color').value=e.target.value; renderAll(); scheduleSave();};
-  document.getElementById('f_color').oninput = e=>{em.color=e.target.value; document.getElementById('f_colorHex').value=e.target.value; renderAll(); scheduleSave();};
+  document.getElementById('f_colorHex').oninput = e=>{em.color=e.target.value; document.getElementById('f_color').value=e.target.value; renderEmbedList(); renderPreview(); scheduleSave();};
+  document.getElementById('f_color').oninput = e=>{em.color=e.target.value; document.getElementById('f_colorHex').value=e.target.value; renderEmbedList(); renderPreview(); scheduleSave();};
   document.getElementById('f_cspoiler').onchange = e=>{em.spoiler=e.target.checked; renderPreview(); scheduleSave();};
   scroll.querySelectorAll('#quickAdd button').forEach(b => { b.onclick = () => { em.blocks.push(newBlock(b.dataset.t)); renderComponentsForm(); renderPreview(); scheduleSave(); }; });
   document.getElementById('btnDeleteEmbed').onclick = deleteActiveContainer;
@@ -1063,7 +1104,10 @@ function blockToComponent(b) {
     return comp;
   }
   if (b.type === 'buttons') { const items = b.items.filter(x=>x.label).map(buttonComponent); return items.length ? { type: 1, components: items } : null; }
-  if (b.type === 'image') return b.url ? { type: 12, items: [{ media: { url: b.url }, spoiler: !!b.spoiler }] } : null;
+  if (b.type === 'gallery') {
+    const items = b.items.filter(x => x.url).map(x => ({ media: { url: x.url }, spoiler: !!x.spoiler }));
+    return items.length ? { type: 12, items } : null;
+  }
   return null;
 }
 
@@ -1132,7 +1176,7 @@ function componentToBlock(c) {
     return b;
   }
   if (c.type === 1) { const b=newBlock('buttons'); b.items=(c.components||[]).filter(x=>x.type===2).map(x=>({label:x.label||'',style:['','primary','secondary','success','danger','link'][x.style]||'primary',url:x.url||'',customId:x.custom_id||'',emoji:x.emoji?.name||''})); return b; }
-  if (c.type === 12) { const b=newBlock('image'); const first=(c.items&&c.items[0])||{}; b.url=first.media?.url||''; b.spoiler=!!first.spoiler; return b; }
+  if (c.type === 12) { const b=newBlock('gallery'); b.items=(c.items||[]).map(x=>({url:x.media?.url||'', spoiler:!!x.spoiler})); if(!b.items.length) b.items=[{url:'',spoiler:false}]; return b; }
   return null;
 }
 
