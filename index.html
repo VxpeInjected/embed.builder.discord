@@ -34,7 +34,7 @@ html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text);
 body { display: flex; flex-direction: column; overflow: hidden; }
 ::selection { background: var(--accent-soft); }
 button, .icon-btn, .btn, .embed-item, .section-toggle, .add-embed-btn, .add-field-btn, .swatches button, input[type=checkbox], input[type=color], .quick-add button, .fp-close, .fp-resize, .seg-opt, .popout-trigger, .overlay-head .close, .drag-handle { cursor: var(--cur-pointer); }
-input[type=text], input[type=url], textarea { cursor: var(--cur-text); }
+input[type=text], input[type=url], input[type=password], textarea { cursor: var(--cur-text); }
 input, textarea, select { font-family: var(--mono); color: var(--text); background: var(--bg-input); border: 1px solid var(--border); }
 input:focus, textarea:focus, select:focus, button:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 a { color: var(--accent); }
@@ -118,8 +118,10 @@ input[type=color] { width: 34px; height: 34px; padding: 2px; border-radius: 4px;
 .icon-btn.danger:hover { color: var(--danger); }
 .inline-check { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-dim); margin-top: 6px; user-select: none; }
 .inline-check input { position: absolute; opacity: 0; width: 0; height: 0; }
-.cbx-box { width: 14px; height: 14px; border: 1px solid var(--border); border-radius: 3px; background: var(--bg-input); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: transparent; transition: background .12s, border-color .12s, color .12s; }
-.inline-check input:checked + .cbx-box { background: var(--accent); border-color: var(--accent); color: #0a0b0d; }
+.cbx-box { width: 14px; height: 14px; border: 1px solid var(--border); border-radius: 3px; background: var(--bg-input); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background .12s, border-color .12s; }
+.cbx-box svg { opacity: 0; transition: opacity .1s; }
+.inline-check input:checked + .cbx-box { background: var(--accent); border-color: var(--accent); }
+.inline-check input:checked + .cbx-box svg { opacity: 1; }
 .inline-check:hover .cbx-box { border-color: var(--accent-dim); }
 .add-field-btn { width: 100%; padding: 7px; border: 1px dashed var(--border); border-radius: 4px; background: transparent; color: var(--text-faint); font-size: 11.5px; }
 .add-field-btn:hover { color: var(--accent); border-color: var(--accent-dim); }
@@ -174,6 +176,7 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
 .dc-quote { border-left: 3px solid #4e5058; padding-left: 10px; margin: 2px 0; }
 .dc-code-inline { background: #1e1f22; border-radius: 3px; padding: 1px 4px; font-family: ui-monospace, monospace; font-size: .9em; }
 .dc-code-block { display: block; background: #1e1f22; border-radius: 4px; padding: 8px 10px; font-family: ui-monospace, monospace; font-size: 12.5px; white-space: pre-wrap; margin: 3px 0; }
+.dc-emoji { display: inline-block; vertical-align: -0.32em; object-fit: contain; margin-right: 2px; }
 .dc-embed, .dc-container { display: flex; max-width: 432px; border-radius: 4px; background: #2b2d31; margin-top: 8px; overflow: hidden; }
 .dc-embed-bar { width: 4px; flex-shrink: 0; background: #202225; }
 .dc-embed-body, .dc-container-body { padding: 8px 12px 12px; min-width: 0; flex: 1; }
@@ -249,6 +252,35 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
 .toast.err { border-color: var(--danger); color: #e9998a; }
 .toast.ok { border-color: var(--success); color: #a8d1af; }
 
+/* boot / auth screens */
+#bootScreen, #authGate {
+  position: fixed; inset: 0; z-index: 999;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center; flex-direction: column;
+  transition: opacity .25s ease;
+}
+#bootScreen { gap: 16px; }
+.boot-mark { font-size: 17px; letter-spacing: .02em; color: var(--text); }
+.boot-mark b { color: var(--accent); font-weight: 600; }
+.boot-mark span { color: var(--text-faint); }
+.boot-cursor { display: inline-block; margin-left: 1px; color: var(--accent); animation: boot-blink 1s step-end infinite; }
+@keyframes boot-blink { 50% { opacity: 0; } }
+.boot-bar { width: 140px; height: 2px; background: var(--border-soft); border-radius: 2px; overflow: hidden; }
+.boot-bar-fill { width: 0%; height: 100%; background: var(--accent); animation: boot-fill .55s ease forwards; }
+@keyframes boot-fill { to { width: 100%; } }
+#bootScreen.hide, #authGate.hide { opacity: 0; pointer-events: none; }
+#authGate { display: none; }
+#authGate.show { display: flex; }
+.auth-box { width: min(280px, 84vw); text-align: center; }
+.auth-box input {
+  width: 100%; padding: 9px 11px; border-radius: 5px; font-size: 13px; text-align: center;
+  letter-spacing: .04em;
+}
+.auth-box.shake { animation: auth-shake .32s; }
+@keyframes auth-shake { 20%,60% { transform: translateX(-6px); } 40%,80% { transform: translateX(6px); } }
+#authError { color: var(--danger); font-size: 11px; margin-top: 8px; opacity: 0; transition: opacity .12s; }
+#authError.show { opacity: 1; }
+
 @media (max-width: 900px) {
   .layout { grid-template-columns: 1fr !important; }
   .col-resizer { display: none; }
@@ -260,6 +292,22 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
 </style>
 </head>
 <body>
+
+<div id="bootScreen">
+  <div class="boot-mark"><b>vxpe</b><span>/</span>embeds<span class="boot-cursor">_</span></div>
+  <div class="boot-bar"><div class="boot-bar-fill"></div></div>
+</div>
+
+<div id="authGate">
+  <div class="auth-box">
+    <div class="boot-mark" style="margin-bottom:18px;"><b>vxpe</b><span>/</span>embeds</div>
+    <div style="font-size:11.5px;color:var(--text-dim);margin-bottom:10px;">this session needs a password</div>
+    <input type="password" id="authInput" placeholder="password" autocomplete="off" spellcheck="false">
+    <button class="btn primary" id="authSubmit" style="width:100%;margin-top:10px;justify-content:center;">unlock</button>
+    <div id="authError">wrong password — try again</div>
+  </div>
+</div>
+
 
 <div class="topbar">
   <div class="brand"><b>vxpe</b><span>/</span>embeds</div>
@@ -396,8 +444,9 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
 <div class="toast" id="toast"></div>
 
 <script>
+const ICON_COLOR = 'rgb(237,236,232)';
 const ICON_PATHS = {
-  gear: '<circle cx="8" cy="8" r="2.3"/><path d="M8 1.6v2M8 12.4v2M1.6 8h2M12.4 8h2M3.6 3.6l1.3 1.3M11.1 11.1l1.3 1.3M3.6 12.4l1.3-1.3M11.1 4.9l1.3-1.3"/>',
+  gear: '<line x1="2" y1="4.5" x2="14" y2="4.5"/><circle cx="10" cy="4.5" r="1.7" fill="' + ICON_COLOR + '" stroke="none"/><line x1="2" y1="8" x2="14" y2="8"/><circle cx="5.3" cy="8" r="1.7" fill="' + ICON_COLOR + '" stroke="none"/><line x1="2" y1="11.5" x2="14" y2="11.5"/><circle cx="11" cy="11.5" r="1.7" fill="' + ICON_COLOR + '" stroke="none"/>',
   save: '<path d="M8 2v7.3M8 9.3L5.2 6.5M8 9.3l2.8-2.8M3 11.3v1.7a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1.7"/>',
   upload: '<path d="M8 12.5V4.7M8 4.7L5.2 7.5M8 4.7l2.8 2.8M3 11.3v1.7a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1.7"/>',
   expand: '<path d="M2 6.5V2h4.5M14 9.5V14H9.5M2 2l5 5M14 14l-5-5"/>',
@@ -412,7 +461,7 @@ const ICON_PATHS = {
   drag: '<circle cx="5" cy="4" r=".9"/><circle cx="5" cy="8" r=".9"/><circle cx="5" cy="12" r=".9"/><circle cx="9" cy="4" r=".9"/><circle cx="9" cy="8" r=".9"/><circle cx="9" cy="12" r=".9"/>'
 };
 function icon(name, size) {
-  return `<svg width="${size||14}" height="${size||14}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${ICON_PATHS[name]||''}</svg>`;
+  return `<svg width="${size||14}" height="${size||14}" viewBox="0 0 16 16" fill="none" stroke="${ICON_COLOR}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${ICON_PATHS[name]||''}</svg>`;
 }
 function customCheckbox(opts) {
   const idAttr = opts.id ? ` id="${opts.id}"` : '';
@@ -590,9 +639,28 @@ function downloadProjectFile() {
 
 function escapeHtml(str) { return (str || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
+function parseEmojiToken(raw) {
+  const v = (raw || '').trim();
+  if (!v) return null;
+  let m = v.match(/^<(a)?:([A-Za-z0-9_]+):(\d+)>$/);
+  if (m) return { type: 'custom', animated: !!m[1], name: m[2], id: m[3] };
+  m = v.match(/^([A-Za-z0-9_]+):(\d+)$/);
+  if (m) return { type: 'custom', animated: false, name: m[1], id: m[2] };
+  return { type: 'unicode', name: v };
+}
+function emojiImgHtml(parsed, size) {
+  const ext = parsed.animated ? 'gif' : 'png';
+  return `<img class="dc-emoji" style="width:${size||20}px;height:${size||20}px;" src="https://cdn.discordapp.com/emojis/${parsed.id}.${ext}" alt=":${escapeHtml(parsed.name)}:" title=":${escapeHtml(parsed.name)}:" onerror="this.outerHTML=':${escapeHtml(parsed.name)}:'">`;
+}
+
 function renderInline(raw) {
   if (!raw) return '';
-  let s = escapeHtml(raw);
+  const emojis = [];
+  const working = raw.replace(/<(a)?:([A-Za-z0-9_]+):(\d+)>/g, (m, anim, name, id) => {
+    emojis.push({ type:'custom', animated: !!anim, name, id });
+    return `\u0000EJ${emojis.length - 1}\u0000`;
+  });
+  let s = escapeHtml(working);
   s = s.replace(/`([^`]+)`/g, '<code class="dc-code-inline">$1</code>');
   s = s.replace(/\*\*\*(.+?)\*\*\*/g, '<b><i>$1</i></b>');
   s = s.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
@@ -600,6 +668,7 @@ function renderInline(raw) {
   s = s.replace(/~~(.+?)~~/g, '<s>$1</s>');
   s = s.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, '<i>$1</i>');
   s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  s = s.replace(/\u0000EJ(\d+)\u0000/g, (m, idx) => emojiImgHtml(emojis[+idx]));
   return s;
 }
 
@@ -945,7 +1014,8 @@ function renderButtonItems(em, block, blockIndex, card) {
       <div class="field-card-head" style="margin-bottom:6px;"><span class="tag">button ${j+1}</span><button class="icon-btn danger" data-act="delbtn">${icon('trash',12)}</button></div>
       <div class="field-row split"><div><label>label</label><input type="text" data-bk="label" value="${escapeHtml(btn.label)}"></div><div><label>style</label><select data-bk="style">${buttonStyleOptions(btn.style)}</select></div></div>
       <div class="field-row"><label>${btn.style==='link'?'url':'custom id'}</label><input type="text" data-bk="target" value="${escapeHtml(btn.style==='link'?btn.url:btn.customId)}" placeholder="${btn.style==='link'?'https://...':'my_button_id'}"></div>
-      <div class="field-row"><label>emoji (optional)</label><input type="text" data-bk="emoji" value="${escapeHtml(btn.emoji)}" placeholder="⭐"></div>
+      <div class="field-row"><label>emoji (optional)</label><input type="text" data-bk="emoji" value="${escapeHtml(btn.emoji)}" placeholder="⭐ or &lt;:name:id&gt;"></div>
+      <div class="setting-desc" style="margin-top:-4px;">unicode emoji, or a custom one — paste it as <code class="dc-code-inline">&lt;:name:id&gt;</code> (right-click it in discord → copy emoji)</div>
     `;
     row.querySelectorAll('[data-bk]').forEach(el => {
       const k = el.dataset.bk;
@@ -1050,7 +1120,8 @@ function renderContainerHtml(em) {
 
 function renderButtonPill(btn) {
   const linkArrow = btn.style === 'link' ? ` ${icon('linkarrow',11)}` : '';
-  const emoji = btn.emoji ? escapeHtml(btn.emoji) + ' ' : '';
+  const parsedEmoji = parseEmojiToken(btn.emoji);
+  const emoji = parsedEmoji ? (parsedEmoji.type === 'custom' ? emojiImgHtml(parsedEmoji, 16) : escapeHtml(parsedEmoji.name) + ' ') : '';
   return `<span class="dc-pill style-${btn.style}">${emoji}${escapeHtml(btn.label || 'button')}${linkArrow}</span>`;
 }
 
@@ -1116,7 +1187,8 @@ function buttonComponent(btn) {
   const c = { type: 2, style: styleMap[btn.style] || 1, label: btn.label || 'button' };
   if (btn.style === 'link') c.url = btn.url || 'https://example.com';
   else c.custom_id = btn.customId || ('btn_' + Math.random().toString(36).slice(2,8));
-  if (btn.emoji) c.emoji = { name: btn.emoji };
+  const parsedEmoji = parseEmojiToken(btn.emoji);
+  if (parsedEmoji) c.emoji = parsedEmoji.type === 'custom' ? { id: parsedEmoji.id, name: parsedEmoji.name, animated: parsedEmoji.animated } : { name: parsedEmoji.name };
   return c;
 }
 
@@ -1165,17 +1237,23 @@ function loadFromJson(raw) {
   } catch (e) { showToast('invalid json — ' + e.message, 'err'); }
 }
 
+function emojiObjToField(e) {
+  if (!e) return '';
+  if (e.id) return `<${e.animated?'a':''}:${e.name}:${e.id}>`;
+  return e.name || '';
+}
+
 function componentToBlock(c) {
   if (c.type === 10) return { type:'text', content: c.content || '' };
   if (c.type === 14) return { type:'separator', divider: c.divider !== false, spacing: c.spacing===2?'large':'small' };
   if (c.type === 9) {
     const b = newBlock('section');
     b.text = (c.components && c.components[0] && c.components[0].content) || '';
-    if (c.accessory && c.accessory.type === 2) { b.accessoryType='button'; b.accessoryButton = { label:c.accessory.label||'', style:['','primary','secondary','success','danger','link'][c.accessory.style]||'primary', url:c.accessory.url||'', customId:c.accessory.custom_id||'', emoji:c.accessory.emoji?.name||'' }; }
+    if (c.accessory && c.accessory.type === 2) { b.accessoryType='button'; b.accessoryButton = { label:c.accessory.label||'', style:['','primary','secondary','success','danger','link'][c.accessory.style]||'primary', url:c.accessory.url||'', customId:c.accessory.custom_id||'', emoji:emojiObjToField(c.accessory.emoji) }; }
     else if (c.accessory && c.accessory.type === 11) { b.accessoryType='thumbnail'; b.accessoryThumb = { url: c.accessory.media?.url||'' }; }
     return b;
   }
-  if (c.type === 1) { const b=newBlock('buttons'); b.items=(c.components||[]).filter(x=>x.type===2).map(x=>({label:x.label||'',style:['','primary','secondary','success','danger','link'][x.style]||'primary',url:x.url||'',customId:x.custom_id||'',emoji:x.emoji?.name||''})); return b; }
+  if (c.type === 1) { const b=newBlock('buttons'); b.items=(c.components||[]).filter(x=>x.type===2).map(x=>({label:x.label||'',style:['','primary','secondary','success','danger','link'][x.style]||'primary',url:x.url||'',customId:x.custom_id||'',emoji:emojiObjToField(x.emoji)})); return b; }
   if (c.type === 12) { const b=newBlock('gallery'); b.items=(c.items||[]).map(x=>({url:x.media?.url||'', spoiler:!!x.spoiler})); if(!b.items.length) b.items=[{url:'',spoiler:false}]; return b; }
   return null;
 }
@@ -1448,6 +1526,41 @@ document.getElementById('msgUsername').value = state.username;
 document.getElementById('msgAvatar').value = state.avatar_url;
 renderAll();
 updateUrlHash();
+
+/* ---------- boot screen + session password gate ---------- */
+const AUTH_KEY = 'vxpe_embeds_authed';
+const AUTH_PASSWORD = 'vxx.pe';
+(function bootSequence() {
+  const boot = document.getElementById('bootScreen');
+  setTimeout(() => {
+    boot.classList.add('hide');
+    setTimeout(() => { boot.style.display = 'none'; checkAuth(); }, 260);
+  }, 600);
+})();
+function checkAuth() {
+  let authed = false;
+  try { authed = sessionStorage.getItem(AUTH_KEY) === '1'; } catch (e) {}
+  if (authed) return;
+  const gate = document.getElementById('authGate');
+  gate.classList.add('show');
+  const input = document.getElementById('authInput');
+  input.focus();
+  const tryUnlock = () => {
+    if (input.value === AUTH_PASSWORD) {
+      try { sessionStorage.setItem(AUTH_KEY, '1'); } catch (e) {}
+      gate.classList.add('hide');
+      setTimeout(() => { gate.style.display = 'none'; }, 260);
+    } else {
+      const box = document.querySelector('.auth-box');
+      const err = document.getElementById('authError');
+      box.classList.remove('shake'); void box.offsetWidth; box.classList.add('shake');
+      err.classList.add('show');
+      input.value = ''; input.focus();
+    }
+  };
+  document.getElementById('authSubmit').onclick = tryUnlock;
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
+}
 </script>
 </body>
 </html>
