@@ -203,6 +203,7 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
 
 .dc-message { display: flex; gap: 14px; }
 .dc-avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg,#5865F2,#3d47a8); flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 15px; font-weight: 600; overflow: hidden; }
+.dc-avatar.has-img { background: #1e1f22; }
 .dc-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .dc-body { min-width: 0; flex: 1; }
 .dc-header { display: flex; align-items: baseline; gap: 7px; margin-bottom: 2px; }
@@ -568,6 +569,34 @@ function closeOverlay(id) {
   const el = document.getElementById(id);
   el.classList.remove('show');
   setTimeout(() => el.classList.remove('open'), 140);
+}
+
+function customTypeConfirm(message, requiredWord) {
+  return new Promise(resolve => {
+    const ov = document.createElement('div');
+    ov.className = 'overlay open';
+    ov.innerHTML = `<div class="overlay-panel" style="width:min(400px,90vw)"><div class="overlay-body" style="padding-top:20px;">
+      <div style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:12px;">${escapeHtml(message)}</div>
+      <input type="text" id="tcInput" placeholder="type ${escapeHtml(requiredWord)}" autocomplete="off" spellcheck="false" style="width:100%;padding:8px 10px;border-radius:4px;font-size:13px;text-align:center;letter-spacing:.05em;">
+      <div class="overlay-actions" style="justify-content:flex-end;margin-top:14px;">
+        <button class="btn small" id="tcCancel">cancel</button>
+        <button class="btn small danger" id="tcOk" disabled>load anyway</button>
+      </div>
+    </div></div>`;
+    document.body.appendChild(ov);
+    requestAnimationFrame(() => ov.classList.add('show'));
+    const input = ov.querySelector('#tcInput');
+    const okBtn = ov.querySelector('#tcOk');
+    input.focus();
+    const cleanup = v => { ov.classList.remove('show'); document.removeEventListener('keydown', onEsc); setTimeout(() => ov.remove(), 140); resolve(v); };
+    function onEsc(e) { if (e.key === 'Escape') cleanup(false); }
+    input.addEventListener('input', () => { okBtn.disabled = input.value !== requiredWord; });
+    input.addEventListener('keydown', e => { if (e.key === 'Enter' && input.value === requiredWord) cleanup(true); });
+    okBtn.onclick = () => cleanup(true);
+    ov.querySelector('#tcCancel').onclick = () => cleanup(false);
+    ov.onclick = e => { if (e.target === ov) cleanup(false); };
+    document.addEventListener('keydown', onEsc);
+  });
 }
 
 function customConfirm(message, opts) {
@@ -1333,7 +1362,7 @@ function renderPreview() {
 
   const username = state.username || 'vxpe';
   const avatar = state.avatar_url;
-  let html = `<div class="dc-message"><div class="dc-avatar">${avatar?`<img src="${escapeHtml(avatar)}" onerror="this.parentElement.textContent='${username.charAt(0).toUpperCase()}'">`:username.charAt(0).toUpperCase()}</div><div class="dc-body">
+  let html = `<div class="dc-message"><div class="dc-avatar${avatar?' has-img':''}">${avatar?`<img src="${escapeHtml(avatar)}" onerror="this.parentElement.classList.remove('has-img');this.parentElement.textContent='${username.charAt(0).toUpperCase()}'">`:username.charAt(0).toUpperCase()}</div><div class="dc-body">
     <div class="dc-header"><span class="dc-username">${escapeHtml(username)}</span><span class="dc-tag">APP</span><span class="dc-time">${timeAgoLabel()}</span></div>`;
 
   if (hasContent) html += `<div class="dc-content">${renderMarkdown(state.content)}</div>`;
@@ -1481,40 +1510,73 @@ function openJsonOverlay() {
   openOverlay('jsonOverlay');
 }
 
-function loadFromJson(raw) {
+function applyDiscordPayload(parsed) {
+  state.content = parsed.content || '';
+  state.username = parsed.username || '';
+  state.avatar_url = parsed.avatar_url || '';
+  if (Array.isArray(parsed.components) && parsed.components.length) {
+    state.format = 'components';
+    state.embeds = parsed.components.slice(0, LIMITS.embeds).map(c => {
+      const em = emptyContainer();
+      em.color = typeof c.accent_color === 'number' ? '#' + c.accent_color.toString(16).padStart(6,'0') : '#6e7aec';
+      em.spoiler = !!c.spoiler;
+      em.blocks = (c.components || []).map(componentToBlock).filter(Boolean);
+      return em;
+    });
+  } else {
+    state.format = 'embed';
+    const embeds = Array.isArray(parsed.embeds) && parsed.embeds.length ? parsed.embeds : [{}];
+    state.embeds = embeds.slice(0, LIMITS.embeds).map(e => {
+      const em = emptyContainer();
+      em.title = e.title || ''; em.url = e.url || ''; em.description = e.description || '';
+      em.color = typeof e.color === 'number' ? '#' + e.color.toString(16).padStart(6,'0') : '#6e7aec';
+      em.author = { name: e.author?.name||'', url: e.author?.url||'', icon_url: e.author?.icon_url||'' };
+      em.thumbnail = { url: e.thumbnail?.url||'' }; em.image = { url: e.image?.url||'' };
+      em.footer = { text: e.footer?.text||'', icon_url: e.footer?.icon_url||'' };
+      em.timestamp = !!e.timestamp;
+      em.fields = Array.isArray(e.fields) ? e.fields.slice(0,LIMITS.fields).map(f=>({name:f.name||'',value:f.value||'',inline:f.inline!==false})) : [];
+      return em;
+    });
+  }
+  state.activeIndex = 0;
+}
+
+// figures out which "shape" of JSON this is, and what editor format it represents,
+// without mutating state yet — so we can warn before overwriting a different format
+function detectJsonShape(parsed) {
+  if (parsed && parsed.snapshot && typeof parsed.snapshot === 'object' && Array.isArray(parsed.snapshot.embeds)) {
+    return { kind: 'snapshot', data: parsed.snapshot, format: parsed.snapshot.format || 'embed' };
+  }
+  if (parsed && Array.isArray(parsed.embeds) && ('format' in parsed || 'activeIndex' in parsed)) {
+    return { kind: 'snapshot', data: parsed, format: parsed.format || 'embed' };
+  }
+  if (parsed && Array.isArray(parsed.components) && parsed.components.length) {
+    return { kind: 'discord', data: parsed, format: 'components' };
+  }
+  return { kind: 'discord', data: parsed, format: 'embed' };
+}
+
+const FORMAT_LABEL = { embed: 'Embeds (Discord.py)', components: 'Components V2 (Discord.py2)' };
+
+async function parseAndApplyAnyJson(raw) {
+  const parsed = JSON.parse(raw);
+  const shape = detectJsonShape(parsed);
+  if (shape.format !== state.format) {
+    const ok = await customTypeConfirm(
+      `This JSON is for ${FORMAT_LABEL[shape.format]}. You are currently editing ${FORMAT_LABEL[state.format]}. Type CONTINUE to load this over the current save.`,
+      'CONTINUE'
+    );
+    if (!ok) return false;
+  }
+  if (shape.kind === 'snapshot') applySnapshot(shape.data);
+  else { applyDiscordPayload(shape.data); renderAll(); scheduleSave(); }
+  return true;
+}
+
+async function loadFromJson(raw) {
   try {
-    const parsed = JSON.parse(raw);
-    state.content = parsed.content || '';
-    state.username = parsed.username || '';
-    state.avatar_url = parsed.avatar_url || '';
-    if (Array.isArray(parsed.components) && parsed.components.length) {
-      state.format = 'components';
-      state.embeds = parsed.components.slice(0, LIMITS.embeds).map(c => {
-        const em = emptyContainer();
-        em.color = typeof c.accent_color === 'number' ? '#' + c.accent_color.toString(16).padStart(6,'0') : '#6e7aec';
-        em.spoiler = !!c.spoiler;
-        em.blocks = (c.components || []).map(componentToBlock).filter(Boolean);
-        return em;
-      });
-    } else {
-      state.format = 'embed';
-      const embeds = Array.isArray(parsed.embeds) && parsed.embeds.length ? parsed.embeds : [{}];
-      state.embeds = embeds.slice(0, LIMITS.embeds).map(e => {
-        const em = emptyContainer();
-        em.title = e.title || ''; em.url = e.url || ''; em.description = e.description || '';
-        em.color = typeof e.color === 'number' ? '#' + e.color.toString(16).padStart(6,'0') : '#6e7aec';
-        em.author = { name: e.author?.name||'', url: e.author?.url||'', icon_url: e.author?.icon_url||'' };
-        em.thumbnail = { url: e.thumbnail?.url||'' }; em.image = { url: e.image?.url||'' };
-        em.footer = { text: e.footer?.text||'', icon_url: e.footer?.icon_url||'' };
-        em.timestamp = !!e.timestamp;
-        em.fields = Array.isArray(e.fields) ? e.fields.slice(0,LIMITS.fields).map(f=>({name:f.name||'',value:f.value||'',inline:f.inline!==false})) : [];
-        return em;
-      });
-    }
-    state.activeIndex = 0;
-    renderAll(); scheduleSave();
-    showToast('loaded from json', 'ok');
-    closeOverlay('jsonOverlay');
+    const applied = await parseAndApplyAnyJson(raw);
+    if (applied) { showToast('loaded from json', 'ok'); closeOverlay('jsonOverlay'); }
   } catch (e) { showToast('invalid json — ' + e.message, 'err'); }
 }
 
@@ -1743,12 +1805,10 @@ document.getElementById('fileInput').onchange = e => {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = () => {
+  reader.onload = async () => {
     try {
-      const parsed = JSON.parse(reader.result);
-      applySnapshot(parsed.snapshot || parsed);
-      showToast('loaded from file', 'ok');
-      closeOverlay('storageOverlay');
+      const applied = await parseAndApplyAnyJson(reader.result);
+      if (applied) { showToast('loaded from file', 'ok'); closeOverlay('storageOverlay'); }
     } catch (err) { showToast('invalid file', 'err'); }
   };
   reader.readAsText(file);
@@ -1763,15 +1823,16 @@ document.getElementById('btnSaveAs').onclick = () => {
   renderLibraryList();
   showToast('saved', 'ok');
 };
-document.getElementById('btnLoadPasted').onclick = () => {
+document.getElementById('btnLoadPasted').onclick = async () => {
   const raw = document.getElementById('pasteJsonArea').value.trim();
   if (!raw) { showToast('paste something first', 'err'); return; }
   try {
-    const parsed = JSON.parse(raw);
-    applySnapshot(parsed.snapshot || parsed);
-    document.getElementById('pasteJsonArea').value = '';
-    showToast('loaded from pasted json', 'ok');
-    closeOverlay('storageOverlay');
+    const applied = await parseAndApplyAnyJson(raw);
+    if (applied) {
+      document.getElementById('pasteJsonArea').value = '';
+      showToast('loaded from pasted json', 'ok');
+      closeOverlay('storageOverlay');
+    }
   } catch (e) { showToast('invalid json', 'err'); }
 };
 
