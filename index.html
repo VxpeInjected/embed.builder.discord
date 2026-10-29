@@ -334,7 +334,7 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
 .boot-cursor { display: inline-block; margin-left: 1px; color: var(--accent); animation: boot-blink 1s step-end infinite; }
 @keyframes boot-blink { 50% { opacity: 0; } }
 .boot-bar { width: 140px; height: 2px; background: var(--border-soft); border-radius: 2px; overflow: hidden; }
-.boot-bar-fill { width: 0%; height: 100%; background: var(--accent); animation: boot-fill .55s ease forwards; }
+.boot-bar-fill { width: 0%; height: 100%; background: var(--accent); animation: boot-fill .24s ease forwards; }
 @keyframes boot-fill { to { width: 100%; } }
 #bootScreen.hide, #authGate.hide { opacity: 0; pointer-events: none; }
 #authGate { display: none; }
@@ -372,7 +372,7 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
     <div style="font-size:11.5px;color:var(--text-dim);margin-bottom:10px;">this session needs a password</div>
     <input type="password" id="authInput" placeholder="password" autocomplete="off" spellcheck="false">
     <button class="btn primary" id="authSubmit" style="width:100%;margin-top:10px;justify-content:center;">unlock</button>
-    <div id="authError">wrong password — try again</div>
+    <div id="authError">wrong password, try again</div>
   </div>
 </div>
 
@@ -439,7 +439,7 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
 
 <div class="overlay" id="jsonOverlay">
   <div class="overlay-panel">
-    <div class="overlay-head"><span>webhook payload — json</span><span class="close" id="jsonClose"></span></div>
+    <div class="overlay-head"><span>webhook payload, json</span><span class="close" id="jsonClose"></span></div>
     <div class="overlay-body">
       <textarea id="jsonArea" spellcheck="false"></textarea>
       <div class="setting-desc" id="jsonNote" style="margin-top:8px;"></div>
@@ -460,7 +460,7 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
         <div class="seg-opt" data-fmt="embed">embeds (discord.py)</div>
         <div class="seg-opt" data-fmt="components">components v2 (discord.py2)</div>
       </div>
-      <div class="setting-desc" style="margin-bottom:10px;">components v2 gives you separators, button-in-message sections and buttons — no <code>content</code> field, so add a text block instead.</div>
+      <div class="setting-desc" style="margin-bottom:10px;">components v2 gives you separators, button-in-message sections and buttons, no <code>content</code> field, so add a text block instead.</div>
 
       <div class="setting-row">
         <div><div class="setting-label">confirm before sending</div><div class="setting-desc">ask before the webhook actually fires</div></div>
@@ -486,19 +486,19 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
   <div class="overlay-panel" style="width:min(520px,92vw)">
     <div class="overlay-head"><span>save, load & share</span><span class="close" id="storageClose"></span></div>
     <div class="overlay-body">
-      <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;">shareable link — updates automatically as you edit</div>
+      <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;">shareable link, updates automatically as you edit</div>
       <div class="field-row split" style="align-items:center;">
         <input type="text" id="shareLink" readonly style="flex:1;font-size:11px;">
         <button class="btn small" id="btnCopyLink">copy</button>
       </div>
-      <div class="setting-desc" style="margin-bottom:6px;">copy this address — reopening it restores this exact message, even in a different browser.</div>
+      <div class="setting-desc" style="margin-bottom:6px;">copy this address, reopening it restores this exact message, even in a different browser.</div>
 
       <div style="font-size:11px;color:var(--text-dim);margin:16px 0 6px;border-top:1px solid var(--border-soft);padding-top:12px;">file</div>
       <div class="field-row split">
         <button class="btn small" id="btnDownloadFile"></button>
         <button class="btn small" id="btnUploadFile"></button>
       </div>
-      <div class="setting-desc">a real file on disk — survives clearing your browser, and works regardless of future site updates.</div>
+      <div class="setting-desc">a real file on disk, survives clearing your browser, and works regardless of future site updates.</div>
       <input type="file" id="fileInput" accept=".json,application/json" style="display:none;">
       <div class="field-row" style="margin-top:10px;">
         <label>or paste json directly</label>
@@ -653,7 +653,7 @@ function emptyContainer() {
 }
 
 let state = {
-  format: 'embed',
+  format: 'components',
   content: '', username: '', avatar_url: '',
   embeds: [emptyContainer()],
   activeIndex: 0,
@@ -691,7 +691,7 @@ function applySnapshot(snap) {
   renderAll(); scheduleSave();
 }
 
-/* ---------- url hash sync — every edit updates the address bar, no history spam ---------- */
+/* ---------- url hash sync: every edit updates the address bar, no history spam ---------- */
 function updateUrlHash() {
   try { history.replaceState(null, '', '#s=' + toBase64Url(JSON.stringify(snapshotState()))); } catch (e) {}
 }
@@ -740,7 +740,7 @@ function scheduleSave() {
   }, 300);
 }
 
-/* ---------- named saves on this device (survives future site updates — plain versioned schema) ---------- */
+/* ---------- named saves on this device (survives future site updates, plain versioned schema) ---------- */
 function loadLibrary() {
   try {
     const raw = localStorage.getItem(LIBRARY_KEY);
@@ -1049,7 +1049,7 @@ function renderEmbedList() {
   if (state.format === 'components' && !existingNote) {
     const note = document.createElement('div');
     note.className = 'content-note';
-    note.textContent = 'components v2 can\u2019t attach this text to the embed itself — if you fill this in, it\u2019s sent as its own plain message right before the container.';
+    note.textContent = 'components v2 can\u2019t attach this text to the embed itself, if you fill this in, it\u2019s sent as its own plain message right before the container.';
     document.getElementById('msgContentDock').appendChild(note);
   } else if (state.format !== 'components' && existingNote) {
     existingNote.remove();
@@ -1221,7 +1221,7 @@ function renderBlocks(em) {
   if (!em.blocks.length) {
     const p = document.createElement('div');
     p.style.cssText = 'color:var(--text-faint);font-size:11.5px;padding:8px 0 4px;line-height:1.6;';
-    p.textContent = 'empty container — add a text block, separator, section or button row above.';
+    p.textContent = 'empty container, add a text block, separator, section or button row above.';
     wrap.appendChild(p);
     return;
   }
@@ -1233,7 +1233,7 @@ function renderBlocks(em) {
     </div></div>`;
 
     if (b.type === 'text') {
-      inner += `<div class="field-row"><label>text ${limitLabel(b.content.length, LIMITS.blockText)}</label><textarea data-k="content" rows="3" placeholder="markdown text — **bold**, *italic*, [link](url)">${escapeHtml(b.content)}</textarea></div>`;
+      inner += `<div class="field-row"><label>text ${limitLabel(b.content.length, LIMITS.blockText)}</label><textarea data-k="content" rows="3" placeholder="markdown text: **bold**, *italic*, [link](url)">${escapeHtml(b.content)}</textarea></div>`;
     } else if (b.type === 'separator') {
       inner += `<label class="inline-check" style="margin-top:0"><input type="checkbox" data-k="divider" ${b.divider?'checked':''}><span class="cbx-box">${icon('check',10)}</span><span>show divider line</span></label>
         <div class="field-row" style="margin-top:8px"><label>spacing</label>${customSelectHtml('spacingSel_'+i, [{value:'small',label:'small'},{value:'large',label:'large'}], b.spacing)}</div>`;
@@ -1323,7 +1323,7 @@ function renderButtonItems(em, block, blockIndex, card) {
       <div class="field-row split"><div><label>label</label><input type="text" data-bk="label" value="${escapeHtml(btn.label)}"></div><div><label>style</label>${customSelectHtml('styleSel_'+blockIndex+'_'+j, buttonStyleOptionsList(), btn.style)}</div></div>
       <div class="field-row"><label>${btn.style==='link'?'url':'custom id'}</label><input type="text" data-bk="target" value="${escapeHtml(btn.style==='link'?btn.url:btn.customId)}" placeholder="${btn.style==='link'?'https://...':'my_button_id'}"></div>
       <div class="field-row"><label>emoji (optional)</label><input type="text" data-bk="emoji" value="${escapeHtml(btn.emoji)}" placeholder="⭐ or &lt;:name:id&gt;"></div>
-      <div class="setting-desc" style="margin-top:-4px;">unicode emoji, or a custom one — paste it as <code class="dc-code-inline">&lt;:name:id&gt;</code> (right-click it in discord → copy emoji)</div>
+      <div class="setting-desc" style="margin-top:-4px;">unicode emoji, or a custom one, paste it as <code class="dc-code-inline">&lt;:name:id&gt;</code> (right-click it in discord → copy emoji)</div>
     `;
     row.querySelectorAll('[data-bk]').forEach(el => {
       const k = el.dataset.bk;
@@ -1358,7 +1358,7 @@ function renderPreview() {
   const hasContent = state.format !== 'components' && state.content.trim().length > 0;
   const hasStuff = state.embeds.some(em => state.format==='components' ? em.blocks.length>0 : (em.title||em.description||em.fields.length||em.image.url||em.thumbnail.url||em.author.name||em.footer.text));
 
-  if (!hasContent && !hasStuff) { inner.innerHTML = `<div class="preview-empty">nothing to preview yet —<br>start filling in the ${state.format==='components'?'container':'embed'} on the left.</div>`; return; }
+  if (!hasContent && !hasStuff) { inner.innerHTML = `<div class="preview-empty">nothing to preview yet,<br>start filling in the ${state.format==='components'?'container':'embed'} on the left.</div>`; return; }
 
   const username = state.username || 'vxpe';
   const avatar = state.avatar_url;
@@ -1505,7 +1505,7 @@ function buttonComponent(btn) {
 function openJsonOverlay() {
   document.getElementById('jsonArea').value = JSON.stringify(buildPayload(), null, 2);
   document.getElementById('jsonNote').textContent = state.format === 'components'
-    ? 'sending this yourself? components v2 payloads need ?with_components=true appended to the webhook url, or discord rejects it as empty — the built-in send button already handles this.'
+    ? 'sending this yourself? components v2 payloads need ?with_components=true appended to the webhook url, or discord rejects it as empty. the built-in send button already handles this.'
     : '';
   openOverlay('jsonOverlay');
 }
@@ -1542,7 +1542,7 @@ function applyDiscordPayload(parsed) {
 }
 
 // figures out which "shape" of JSON this is, and what editor format it represents,
-// without mutating state yet — so we can warn before overwriting a different format
+// without mutating state yet, so we can warn before overwriting a different format
 function detectJsonShape(parsed) {
   if (parsed && parsed.snapshot && typeof parsed.snapshot === 'object' && Array.isArray(parsed.snapshot.embeds)) {
     return { kind: 'snapshot', data: parsed.snapshot, format: parsed.snapshot.format || 'embed' };
@@ -1577,7 +1577,7 @@ async function loadFromJson(raw) {
   try {
     const applied = await parseAndApplyAnyJson(raw);
     if (applied) { showToast('loaded from json', 'ok'); closeOverlay('jsonOverlay'); }
-  } catch (e) { showToast('invalid json — ' + e.message, 'err'); }
+  } catch (e) { showToast('invalid json: ' + e.message, 'err'); }
 }
 
 function emojiObjToField(e) {
@@ -1613,7 +1613,11 @@ async function sendWebhook() {
 
   const isComponents = state.format === 'components';
   const payload = buildPayload();
-  if (!payload.content && !payload.embeds && !payload.components) { showToast('nothing to send', 'err'); return; }
+  // in components mode the message text never lands on `payload` itself
+  // (it's sent as its own separate message), so the old check here always
+  // reported "nothing to send" even when there was real content to send
+  const hasSendableContent = isComponents ? state.content.trim().length > 0 : !!payload.content;
+  if (!hasSendableContent && !payload.embeds && !payload.components) { showToast('nothing to send', 'err'); return; }
 
   const btn = document.getElementById('btnSend');
   btn.disabled = true;
@@ -1627,7 +1631,7 @@ async function sendWebhook() {
       const r1 = await fetch(urlRaw, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(msgPayload) });
       if (!r1.ok && r1.status !== 204) {
         const t = await r1.text().catch(()=> '');
-        showToast(`message send failed (${r1.status})${t?' — '+t.slice(0,100):''}`, 'err');
+        showToast(`message send failed (${r1.status})${t?': '+t.slice(0,100):''}`, 'err');
         return;
       }
     }
@@ -1638,11 +1642,11 @@ async function sendWebhook() {
       const sendUrl = isComponents ? urlRaw + (urlRaw.includes('?') ? '&' : '?') + 'with_components=true' : urlRaw;
       const res = await fetch(sendUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
       if (res.ok || res.status===204) showToast('sent', 'ok');
-      else { const t = await res.text().catch(()=> ''); showToast(`discord returned ${res.status}${t?' — '+t.slice(0,120):''}`, 'err'); }
+      else { const t = await res.text().catch(()=> ''); showToast(`discord returned ${res.status}${t?': '+t.slice(0,120):''}`, 'err'); }
     } else {
       showToast('sent', 'ok');
     }
-  } catch (e) { showToast('send failed — check the url and your connection', 'err'); }
+  } catch (e) { showToast('send failed, check the url and your connection', 'err'); }
   finally { btn.disabled=false; btn.textContent='send'; }
 }
 
@@ -1662,15 +1666,15 @@ function createFloatingPanel(title, onClose) {
   const resizer = panel.querySelector('.fp-resize');
   const closeBtn = panel.querySelector('.fp-close');
 
-  let dragging = false, dragOffX = 0, dragOffY = 0;
-  header.addEventListener('mousedown', e => {
+  let dragging = false, dragOffX = 0, dragOffY = 0, resizing = false;
+  const onHeaderDown = e => {
     if (e.target.closest('.fp-close')) return;
     dragging = true;
     const rect = panel.getBoundingClientRect();
     dragOffX = e.clientX - rect.left; dragOffY = e.clientY - rect.top;
     document.body.style.userSelect = 'none';
-  });
-  window.addEventListener('mousemove', e => {
+  };
+  const onMove = e => {
     if (dragging) {
       panel.style.left = Math.max(0, e.clientX - dragOffX) + 'px';
       panel.style.top = Math.max(0, e.clientY - dragOffY) + 'px';
@@ -1681,12 +1685,23 @@ function createFloatingPanel(title, onClose) {
       panel.style.width = Math.max(300, e.clientX - rect.left) + 'px';
       panel.style.height = Math.max(220, e.clientY - rect.top) + 'px';
     }
-  });
-  let resizing = false;
-  resizer.addEventListener('mousedown', e => { resizing = true; document.body.style.userSelect = 'none'; e.preventDefault(); });
-  window.addEventListener('mouseup', () => { dragging = false; resizing = false; document.body.style.userSelect = ''; });
+  };
+  const onResizeDown = e => { resizing = true; document.body.style.userSelect = 'none'; e.preventDefault(); };
+  const onUp = () => { dragging = false; resizing = false; document.body.style.userSelect = ''; };
 
-  closeBtn.onclick = () => { panel.classList.remove('show'); setTimeout(() => { panel.remove(); if (onClose) onClose(); }, 120); };
+  header.addEventListener('mousedown', onHeaderDown);
+  resizer.addEventListener('mousedown', onResizeDown);
+  // these used to be added fresh every time a panel opened and never removed,
+  // so repeated pop out / dock back cycles left dead listeners piling up on window
+  window.addEventListener('mousemove', onMove);
+  window.addEventListener('mouseup', onUp);
+
+  closeBtn.onclick = () => {
+    window.removeEventListener('mousemove', onMove);
+    window.removeEventListener('mouseup', onUp);
+    panel.classList.remove('show');
+    setTimeout(() => { panel.remove(); if (onClose) onClose(); }, 120);
+  };
   return { panel, body };
 }
 
@@ -1700,13 +1715,13 @@ function popoutPreview() {
   dock.replaceWith(placeholder);
   placeholder.id = 'previewDock';
 
-  const { panel, body } = createFloatingPanel('preview — drag to move, corner to resize', () => {
-    body.appendChild(document.getElementById('previewInner'));
+  const { panel, body } = createFloatingPanel('preview, drag to move, corner to resize', () => {
+    // dock back by reusing the placeholder's exact spot, no second element
+    // sharing its id and no redundant append before the real move
     const newDock = document.createElement('div');
     newDock.className = 'pane-scroll'; newDock.id = 'previewDock';
-    document.querySelector('.preview-pane').appendChild(newDock);
     newDock.appendChild(document.getElementById('previewInner'));
-    document.getElementById('previewDock').replaceWith(newDock);
+    placeholder.replaceWith(newDock);
     previewFloat = null;
   });
   panel.style.width = '460px'; panel.style.height = '520px';
@@ -1728,11 +1743,10 @@ function popoutContent() {
   fieldRow.replaceWith(placeholder);
 
   const { panel, body } = createFloatingPanel('message content', () => {
-    const row = document.createElement('div');
-    row.className = 'field-row';
-    row.innerHTML = '<label>content</label>';
-    row.appendChild(textarea);
-    placeholder.replaceWith(row);
+    // move the textarea back into the original field row instead of
+    // rebuilding a new one from scratch and losing any markup on it
+    fieldRow.appendChild(textarea);
+    placeholder.replaceWith(fieldRow);
     contentFloat = null;
   });
   panel.style.width = '420px'; panel.style.height = '260px';
@@ -1778,7 +1792,7 @@ document.getElementById('setAccentSwatch').onclick = (e) => openColorPicker(e.cu
 document.getElementById('btnResetAll').onclick = (e) => {
   confirmDelete(e, 'reset everything? this clears all containers, message text and settings.', () => {
     try { localStorage.removeItem(DRAFT_KEY); } catch (err) {}
-    state = { format:'embed', content:'', username:'', avatar_url:'', embeds:[emptyContainer()], activeIndex:0, settings:{confirmSend:false, compactPreview:false, uiAccent:'#6e7aec'} };
+    state = { format:'components', content:'', username:'', avatar_url:'', embeds:[emptyContainer()], activeIndex:0, settings:{confirmSend:false, compactPreview:false, uiAccent:'#6e7aec'} };
     document.documentElement.style.setProperty('--accent', state.settings.uiAccent);
     document.getElementById('msgContent').value=''; document.getElementById('msgUsername').value=''; document.getElementById('msgAvatar').value='';
     renderSettings(); renderAll(); updateUrlHash();
@@ -1914,10 +1928,19 @@ const AUTH_KEY = 'vxpe_embeds_authed';
 const AUTH_PASSWORD = 'vxx.pe';
 (function bootSequence() {
   const boot = document.getElementById('bootScreen');
+  // skip the animated wait entirely for a session that's already unlocked,
+  // this screen used to hold every load back by ~860ms regardless of auth state
+  let authed = false;
+  try { authed = sessionStorage.getItem(AUTH_KEY) === '1'; } catch (e) {}
+  if (authed) {
+    boot.style.display = 'none';
+    checkAuth();
+    return;
+  }
   setTimeout(() => {
     boot.classList.add('hide');
-    setTimeout(() => { boot.style.display = 'none'; checkAuth(); }, 260);
-  }, 600);
+    setTimeout(() => { boot.style.display = 'none'; checkAuth(); }, 160);
+  }, 260);
 })();
 function checkAuth() {
   let authed = false;
