@@ -198,8 +198,8 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
 .col-resizer:hover::after, .col-resizer.active::after { background: var(--accent); }
 .preview-inner { padding: 16px; font-family: var(--sans); }
 .preview-inner.compact { padding: 10px; font-size: 92%; }
-.popout-trigger { background: transparent; border: 1px solid transparent; color: var(--text-faint); font-size: 12px; padding: 3px 5px; border-radius: 3px; display: inline-flex; align-items: center; }
-.popout-trigger:hover { color: var(--accent); border-color: var(--accent-dim); }
+.popout-trigger { background: transparent; border: 1px solid transparent; color: var(--text-faint); font-size: 12px; padding: 3px 5px; border-radius: 3px; display: inline-flex; align-items: center; transition: color .12s, border-color .12s, background .12s, transform .12s; }
+.popout-trigger:hover { color: var(--accent); border-color: var(--accent-dim); background: var(--accent-soft); transform: translateY(-1px); }
 .docked-placeholder { color: var(--text-faint); font-size: 11.5px; padding: 14px; border: 1px dashed var(--border); border-radius: 6px; text-align: center; line-height: 1.7; margin: 8px 0; }
 .docked-placeholder button { margin-top: 6px; }
 
@@ -251,6 +251,7 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
 .dc-sep.no-line { border-top-color: transparent; }
 .dc-section { display: flex; align-items: center; gap: 12px; }
 .dc-section .dc-section-text { flex: 1; color: #dbdee1; font-size: 13.5px; line-height: 1.375; }
+.dc-footer-text { color: #949ba4; font-size: 12px; line-height: 1.4; }
 .dc-section-thumb { width: 56px; height: 56px; border-radius: 4px; object-fit: cover; flex-shrink: 0; }
 .dc-btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
 .dc-pill { padding: 7px 14px; border-radius: 3px; font-size: 13px; font-weight: 500; color: #fff; border: none; display: inline-flex; align-items: center; gap: 5px; }
@@ -1130,6 +1131,7 @@ function renderEmbedForm() {
   scroll.querySelectorAll('.section-toggle').forEach(el => { el.onclick = () => { sectionState[el.dataset.sec] = !sectionState[el.dataset.sec]; renderForm(); }; });
 
   renderFields(em);
+  wireResizableTextarea(document.getElementById('f_desc'), 'embedDescription');
   bind('f_name', v=>em.name=v); bind('f_title', v=>em.title=v); bind('f_url', v=>em.url=v); bind('f_desc', v=>em.description=v);
   bind('f_colorHex', v=>{em.color=v; document.getElementById('f_colorSwatch').style.background=v; renderEmbedList(); renderPreview(); scheduleSave();});
   document.getElementById('f_colorSwatch').onclick = (e) => openColorPicker(e.currentTarget, em.color, v => {
@@ -1162,6 +1164,7 @@ function renderFields(em) {
     `;
     card.querySelector('[data-k="name"]').oninput = e=>{f.name=e.target.value; renderPreview(); scheduleSave();};
     card.querySelector('[data-k="value"]').oninput = e=>{f.value=e.target.value; renderPreview(); scheduleSave();};
+    wireResizableTextarea(card.querySelector('[data-k="value"]'), 'fieldValue');
     card.querySelector('[data-k="inline"]').onchange = e=>{f.inline=e.target.checked; renderPreview(); scheduleSave();};
     card.querySelector('[data-act="del"]').onclick = (e) => { confirmDelete(e, 'delete this field?', () => { em.fields.splice(i,1); renderForm(); renderPreview(); scheduleSave(); }); };
     card.querySelector('[data-act="up"]').onclick = () => { if(i>0){[em.fields[i-1],em.fields[i]]=[em.fields[i],em.fields[i-1]]; renderForm(); renderPreview(); scheduleSave();} };
@@ -1170,9 +1173,37 @@ function renderFields(em) {
   });
 }
 
+/* ---------- textarea size memory ----------
+   resizable textareas get rebuilt from scratch on every re-render (new
+   container, new block, etc.) so any manual drag-resize used to vanish
+   instantly. heights are now remembered per field kind and restored. */
+const TA_SIZE_KEY = 'vxpe_embeds_ta_sizes';
+let taSizePrefs = {};
+try { taSizePrefs = JSON.parse(localStorage.getItem(TA_SIZE_KEY) || '{}'); } catch (e) { taSizePrefs = {}; }
+let taSizeSaveTimer = null;
+function saveTaSizePrefs() {
+  clearTimeout(taSizeSaveTimer);
+  taSizeSaveTimer = setTimeout(() => {
+    try { localStorage.setItem(TA_SIZE_KEY, JSON.stringify(taSizePrefs)); } catch (e) {}
+  }, 400);
+}
+function wireResizableTextarea(ta, kind) {
+  if (!ta || !kind) return;
+  if (taSizePrefs[kind]) ta.style.height = taSizePrefs[kind];
+  const ro = new ResizeObserver(() => {
+    const h = ta.style.height;
+    if (h && h.endsWith('px') && taSizePrefs[kind] !== h) {
+      taSizePrefs[kind] = h;
+      saveTaSizePrefs();
+    }
+  });
+  ro.observe(ta);
+}
+
 /* ---------- form: components v2 ---------- */
 function newBlock(type) {
   if (type==='text') return {type:'text', content:''};
+  if (type==='footer') return {type:'text', content:'', footer:true};
   if (type==='separator') return {type:'separator', divider:true, spacing:'small'};
   if (type==='section') return {type:'section', text:'', accessoryType:'none', accessoryButton:{label:'',style:'primary',url:'',customId:'',emoji:''}, accessoryThumb:{url:''}};
   if (type==='buttons') return {type:'buttons', items:[{label:'button',style:'primary',url:'',customId:'',emoji:''}]};
@@ -1197,6 +1228,7 @@ function renderComponentsForm() {
       <button data-t="section">+ section</button>
       <button data-t="buttons">+ buttons</button>
       <button data-t="gallery">+ media gallery</button>
+      <button data-t="footer" title="discord containers don't have a real footer field, this adds small muted text styled to read like one">+ footer text</button>
     </div>
     <div id="blocksWrap"></div>
 
@@ -1230,12 +1262,12 @@ function renderBlocks(em) {
   em.blocks.forEach((b, i) => {
     const card = document.createElement('div');
     card.className = 'field-card';
-    let inner = `<div class="field-card-head"><span class="tag">${b.type}</span><div class="field-card-actions">
+    let inner = `<div class="field-card-head"><span class="tag">${b.footer ? 'footer' : b.type}</span><div class="field-card-actions">
       <button class="icon-btn" data-act="up" title="move up">${icon('up',12)}</button><button class="icon-btn" data-act="down" title="move down">${icon('down',12)}</button><button class="icon-btn danger" data-act="del" title="delete (hold shift to skip confirm)">${icon('trash',12)}</button>
     </div></div>`;
 
     if (b.type === 'text') {
-      inner += `<div class="field-row"><label>text ${limitLabel(b.content.length, LIMITS.blockText)}</label><textarea data-k="content" rows="3" placeholder="markdown text: **bold**, *italic*, [link](url)">${escapeHtml(b.content)}</textarea></div>`;
+      inner += `<div class="field-row"><label>${b.footer?'footer text':'text'} ${limitLabel(b.content.length, LIMITS.blockText)}</label><textarea data-k="content" rows="3" placeholder="markdown text: **bold**, *italic*, [link](url)">${escapeHtml(b.content)}</textarea></div>`;
     } else if (b.type === 'separator') {
       inner += `<label class="inline-check" style="margin-top:0"><input type="checkbox" data-k="divider" ${b.divider?'checked':''}><span class="cbx-box">${icon('check',10)}</span><span>show divider line</span></label>
         <div class="field-row" style="margin-top:8px"><label>spacing</label>${customSelectHtml('spacingSel_'+i, [{value:'small',label:'small'},{value:'large',label:'large'}], b.spacing)}</div>`;
@@ -1276,6 +1308,8 @@ function renderBlocks(em) {
 
     if (b.type === 'buttons') renderButtonItems(em, b, i, card);
     if (b.type === 'gallery') renderGalleryItems(em, b, i, card);
+    if (b.type === 'text') wireResizableTextarea(card.querySelector('[data-k="content"]'), b.footer ? 'blockFooterText' : 'blockText');
+    if (b.type === 'section') wireResizableTextarea(card.querySelector('[data-k="text"]'), 'sectionText');
 
     card.querySelector('[data-act="del"]').onclick = (e) => { confirmDelete(e, 'delete this block?', () => { em.blocks.splice(i,1); renderComponentsForm(); renderPreview(); scheduleSave(); }); };
     card.querySelector('[data-act="up"]').onclick = () => { if(i>0){[em.blocks[i-1],em.blocks[i]]=[em.blocks[i],em.blocks[i-1]]; renderComponentsForm(); renderPreview(); scheduleSave();} };
@@ -1408,7 +1442,7 @@ function renderContainerHtml(em) {
   em.blocks.forEach(b => {
     h += `<div class="dc-block">`;
     if (b.type === 'text') {
-      h += `<div class="dc-section-text">${renderMarkdown(b.content)}</div>`;
+      h += b.footer ? `<div class="dc-footer-text">${renderMarkdown(b.content)}</div>` : `<div class="dc-section-text">${renderMarkdown(b.content)}</div>`;
     } else if (b.type === 'separator') {
       h += `<hr class="dc-sep ${b.spacing==='large'?'sep-large':''} ${b.divider?'':'no-line'}">`;
     } else if (b.type === 'section') {
@@ -1702,7 +1736,11 @@ function createFloatingPanel(title, onClose) {
     window.removeEventListener('mousemove', onMove);
     window.removeEventListener('mouseup', onUp);
     panel.classList.remove('show');
-    setTimeout(() => { panel.remove(); if (onClose) onClose(); }, 120);
+    // onClose must run while the panel is still attached to the document:
+    // it looks content back up by id (e.g. document.getElementById('previewInner'))
+    // to move it back to the dock, and that lookup silently fails on a
+    // detached subtree. panel.remove() has to happen after, not before.
+    setTimeout(() => { if (onClose) onClose(); panel.remove(); }, 120);
   };
   return { panel, body };
 }
@@ -1711,6 +1749,10 @@ let previewFloat = null;
 function popoutPreview() {
   if (previewFloat) return;
   const dock = document.getElementById('previewDock');
+  // grab a direct reference before detaching dock, replaceWith() takes dock
+  // (and previewInner, its child) out of the live document in the same step,
+  // so a later document.getElementById('previewInner') would come back null
+  const previewInner = document.getElementById('previewInner');
   const placeholder = document.createElement('div');
   placeholder.className = 'docked-placeholder';
   placeholder.innerHTML = 'preview popped out<br><button class="btn small" id="dockBackPreview">dock it back</button>';
@@ -1718,17 +1760,16 @@ function popoutPreview() {
   placeholder.id = 'previewDock';
 
   const { panel, body } = createFloatingPanel('preview, drag to move, corner to resize', () => {
-    // dock back by reusing the placeholder's exact spot, no second element
-    // sharing its id and no redundant append before the real move
     const newDock = document.createElement('div');
     newDock.className = 'pane-scroll'; newDock.id = 'previewDock';
-    newDock.appendChild(document.getElementById('previewInner'));
+    newDock.appendChild(previewInner);
     placeholder.replaceWith(newDock);
     previewFloat = null;
+    showToast('preview docked back', 'ok');
   });
   panel.style.width = '460px'; panel.style.height = '520px';
   body.style.overflowY = 'auto';
-  body.appendChild(document.getElementById('previewInner'));
+  body.appendChild(previewInner);
   previewFloat = panel;
   document.getElementById('dockBackPreview').onclick = () => { panel.querySelector('.fp-close').click(); };
 }
@@ -1750,6 +1791,7 @@ function popoutContent() {
     fieldRow.appendChild(textarea);
     placeholder.replaceWith(fieldRow);
     contentFloat = null;
+    showToast('content docked back', 'ok');
   });
   panel.style.width = '420px'; panel.style.height = '260px';
   panel.style.top = '90px'; panel.style.right = '90px'; panel.style.left = 'auto';
@@ -1922,6 +1964,7 @@ loadDraft();
 document.getElementById('msgContent').value = state.content;
 document.getElementById('msgUsername').value = state.username;
 document.getElementById('msgAvatar').value = state.avatar_url;
+wireResizableTextarea(document.getElementById('msgContent'), 'msgContent');
 renderAll();
 updateUrlHash();
 
