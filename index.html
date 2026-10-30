@@ -99,7 +99,8 @@ a { color: var(--accent); }
 
 .message-meta { border-top: 1px solid var(--border-soft); padding: 12px; flex-shrink: 0; }
 .message-meta .pane-header { padding: 0 2px 8px; }
-.content-note { font-size: 10.5px; color: var(--text-faint); line-height: 1.5; padding: 6px 0 2px; }
+.content-note { display: flex; gap: 7px; align-items: flex-start; font-size: 11px; color: var(--text-dim); line-height: 1.5; padding: 8px 10px; margin-bottom: 8px; background: var(--accent-soft); border: 1px solid var(--accent-dim); border-radius: 5px; }
+.content-note .ico { flex-shrink: 0; color: var(--accent); margin-top: 1px; }
 
 .form-pane { border-right: 1px solid var(--border-soft); }
 .field-row { margin-bottom: 10px; }
@@ -374,7 +375,7 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
     <div class="boot-mark" style="margin-bottom:18px;"><b>vxpe</b><span>/</span>embeds</div>
     <div style="font-size:11.5px;color:var(--text-dim);margin-bottom:10px;">this session needs a password</div>
     <input type="password" id="authInput" placeholder="password" autocomplete="off" spellcheck="false">
-    <button class="btn primary" id="authSubmit" style="width:100%;margin-top:10px;justify-content:center;">unlock</button>
+    <button class="btn primary" id="authSubmit" style="width:100%;margin-top:10px;justify-content:center;">Unlock</button>
     <div id="authError">wrong password, try again</div>
   </div>
 </div>
@@ -390,8 +391,8 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
   <div class="topbar-actions">
     <button class="btn icon-only" id="btnSettings" title="settings"></button>
     <button class="btn" id="btnStorage" title="save, load, share"></button>
-    <button class="btn" id="btnJson">json</button>
-    <button class="btn primary" id="btnSend">send</button>
+    <button class="btn" id="btnJson">JSON</button>
+    <button class="btn primary" id="btnSend">Send</button>
   </div>
 </div>
 
@@ -402,7 +403,7 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
     <div class="pane-body-full">
       <div class="pane-scroll">
         <div id="embedListItems"></div>
-        <button class="add-embed-btn" id="btnAddEmbed">+ add</button>
+        <button class="add-embed-btn" id="btnAddEmbed">+ Add</button>
         <div class="embed-count" id="embedCount"></div>
       </div>
       <div class="message-meta" id="messageMeta">
@@ -447,8 +448,8 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
       <textarea id="jsonArea" spellcheck="false"></textarea>
       <div class="setting-desc" id="jsonNote" style="margin-top:8px;"></div>
       <div class="overlay-actions">
-        <button class="btn" id="btnCopyJson">copy</button>
-        <button class="btn primary" id="btnLoadJson">load into editor</button>
+        <button class="btn" id="btnCopyJson">Copy</button>
+        <button class="btn primary" id="btnLoadJson">Load into editor</button>
       </div>
     </div>
   </div>
@@ -460,8 +461,8 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
     <div class="overlay-body">
       <div style="font-size:11px;color:var(--text-dim);margin-bottom:8px;">message format</div>
       <div class="seg" id="formatSeg">
-        <div class="seg-opt" data-fmt="embed">embeds (discord.py)</div>
-        <div class="seg-opt" data-fmt="components">components v2 (discord.py2)</div>
+        <div class="seg-opt" data-fmt="embed">Embeds (discord.py)</div>
+        <div class="seg-opt" data-fmt="components">Components V2 (discord.py2)</div>
       </div>
       <div class="setting-desc" style="margin-bottom:10px;">components v2 gives you separators, button-in-message sections and buttons, no <code>content</code> field, so add a text block instead.</div>
 
@@ -479,7 +480,7 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
       </div>
       <div class="setting-row">
         <div><div class="setting-label">reset everything</div><div class="setting-desc">clears all containers, message text and saved draft</div></div>
-        <button class="btn danger small" id="btnResetAll">reset</button>
+        <button class="btn danger small" id="btnResetAll">Reset</button>
       </div>
     </div>
   </div>
@@ -492,7 +493,7 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
       <div style="font-size:11px;color:var(--text-dim);margin-bottom:6px;">shareable link, updates automatically as you edit</div>
       <div class="field-row split" style="align-items:center;">
         <input type="text" id="shareLink" readonly style="flex:1;font-size:11px;">
-        <button class="btn small" id="btnCopyLink">copy</button>
+        <button class="btn small" id="btnCopyLink">Copy</button>
       </div>
       <div class="setting-desc" style="margin-bottom:6px;">copy this address, reopening it restores this exact message, even in a different browser.</div>
 
@@ -507,12 +508,12 @@ select { padding: 7px 8px; border-radius: 4px; font-size: 12px; width: 100%; }
         <label>or paste json directly</label>
         <textarea id="pasteJsonArea" rows="3" placeholder="paste a downloaded project json here"></textarea>
       </div>
-      <button class="btn small" id="btnLoadPasted" style="width:100%;">load pasted json</button>
+      <button class="btn small" id="btnLoadPasted" style="width:100%;">Load pasted JSON</button>
 
       <div style="font-size:11px;color:var(--text-dim);margin:16px 0 6px;border-top:1px solid var(--border-soft);padding-top:12px;">saved on this device</div>
       <div class="field-row split">
         <input type="text" id="saveNameInput" placeholder="name this save">
-        <button class="btn small primary" id="btnSaveAs">save</button>
+        <button class="btn small primary" id="btnSaveAs">Save</button>
       </div>
       <div id="libraryList" style="margin-top:4px;"></div>
     </div>
@@ -582,8 +583,8 @@ function customTypeConfirm(message, requiredWord) {
       <div style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:12px;">${escapeHtml(message)}</div>
       <input type="text" id="tcInput" placeholder="type ${escapeHtml(requiredWord)}" autocomplete="off" spellcheck="false" style="width:100%;padding:8px 10px;border-radius:4px;font-size:13px;text-align:center;letter-spacing:.05em;">
       <div class="overlay-actions" style="justify-content:flex-end;margin-top:14px;">
-        <button class="btn small" id="tcCancel">cancel</button>
-        <button class="btn small danger" id="tcOk" disabled>load anyway</button>
+        <button class="btn small" id="tcCancel">Cancel</button>
+        <button class="btn small danger" id="tcOk" disabled>Load anyway</button>
       </div>
     </div></div>`;
     document.body.appendChild(ov);
@@ -610,8 +611,8 @@ function customConfirm(message, opts) {
     ov.innerHTML = `<div class="overlay-panel" style="width:min(380px,90vw)"><div class="overlay-body" style="padding-top:20px;">
       <div style="font-size:13px;color:var(--text);line-height:1.6;margin-bottom:16px;">${escapeHtml(message)}</div>
       <div class="overlay-actions" style="justify-content:flex-end;">
-        <button class="btn small" id="ccCancel">${opts.cancelLabel||'cancel'}</button>
-        <button class="btn small ${opts.danger?'danger':'primary'}" id="ccOk">${opts.okLabel||'confirm'}</button>
+        <button class="btn small" id="ccCancel">${opts.cancelLabel||'Cancel'}</button>
+        <button class="btn small ${opts.danger?'danger':'primary'}" id="ccOk">${opts.okLabel||'Confirm'}</button>
       </div></div></div>`;
     document.body.appendChild(ov);
     requestAnimationFrame(() => ov.classList.add('show'));
@@ -632,7 +633,7 @@ let dragSrcIndex = null;
 
 async function confirmDelete(e, message, fn) {
   if (e && e.shiftKey) { fn(); return; }
-  const ok = await customConfirm(message, { danger: true, okLabel: 'delete' });
+  const ok = await customConfirm(message, { danger: true, okLabel: 'Delete' });
   if (ok) fn();
 }
 
@@ -678,6 +679,46 @@ function fromBase64Url(b64) {
   for (let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
   return new TextDecoder().decode(bytes);
 }
+function bytesToBase64Url(bytes) {
+  let bin = '';
+  bytes.forEach(b => bin += String.fromCharCode(b));
+  return btoa(bin).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function base64UrlToBytes(b64) {
+  b64 = b64.replace(/-/g,'+').replace(/_/g,'/');
+  while (b64.length % 4) b64 += '=';
+  const bin = atob(b64);
+  const bytes = new Uint8Array(bin.length);
+  for (let i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  return bytes;
+}
+async function streamToBytes(readable) {
+  const reader = readable.getReader();
+  const chunks = []; let total = 0;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value); total += value.length;
+  }
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (const c of chunks) { out.set(c, offset); offset += c.length; }
+  return out;
+}
+async function gzipCompress(str) {
+  const cs = new CompressionStream('gzip');
+  const writer = cs.writable.getWriter();
+  writer.write(new TextEncoder().encode(str));
+  writer.close();
+  return streamToBytes(cs.readable);
+}
+async function gzipDecompress(bytes) {
+  const ds = new DecompressionStream('gzip');
+  const writer = ds.writable.getWriter();
+  writer.write(bytes);
+  writer.close();
+  return new TextDecoder().decode(await streamToBytes(ds.readable));
+}
 function snapshotState() {
   return { format: state.format, content: state.content, username: state.username, avatar_url: state.avatar_url, embeds: state.embeds, activeIndex: state.activeIndex };
 }
@@ -694,31 +735,45 @@ function applySnapshot(snap) {
   renderAll(); scheduleSave();
 }
 
-/* ---------- url hash sync: every edit updates the address bar, no history spam ---------- */
-function updateUrlHash() {
-  try { history.replaceState(null, '', '#s=' + toBase64Url(JSON.stringify(snapshotState()))); } catch (e) {}
+/* ---------- url hash sync: every edit updates the address bar, no history spam ----------
+   #z= is gzip-compressed (short), #s= is the older plain-base64 format kept
+   around so links saved before this change still open correctly. */
+async function updateUrlHash() {
+  const json = JSON.stringify(snapshotState());
+  if (typeof CompressionStream === 'function') {
+    try {
+      const compressed = await gzipCompress(json);
+      history.replaceState(null, '', '#z=' + bytesToBase64Url(compressed));
+      return;
+    } catch (e) {}
+  }
+  try { history.replaceState(null, '', '#s=' + toBase64Url(json)); } catch (e) {}
 }
-function loadFromHash() {
-  const m = location.hash.match(/#s=(.+)/);
-  if (!m) return false;
-  try {
-    const parsed = JSON.parse(fromBase64Url(m[1]));
-    if (parsed && Array.isArray(parsed.embeds) && parsed.embeds.length) {
-      state.format = parsed.format || 'embed';
-      state.content = parsed.content || '';
-      state.username = parsed.username || '';
-      state.avatar_url = parsed.avatar_url || '';
-      state.embeds = parsed.embeds;
-      state.activeIndex = Math.min(parsed.activeIndex || 0, state.embeds.length - 1);
-      return true;
-    }
-  } catch (e) {}
+function applyHashSnapshot(parsed) {
+  if (!(parsed && Array.isArray(parsed.embeds) && parsed.embeds.length)) return false;
+  state.format = parsed.format || 'embed';
+  state.content = parsed.content || '';
+  state.username = parsed.username || '';
+  state.avatar_url = parsed.avatar_url || '';
+  state.embeds = parsed.embeds;
+  state.activeIndex = Math.min(parsed.activeIndex || 0, state.embeds.length - 1);
+  return true;
+}
+async function loadFromHash() {
+  const mz = location.hash.match(/#z=(.+)/);
+  if (mz) {
+    try { return applyHashSnapshot(JSON.parse(await gzipDecompress(base64UrlToBytes(mz[1])))); } catch (e) {}
+  }
+  const ms = location.hash.match(/#s=(.+)/);
+  if (ms) {
+    try { return applyHashSnapshot(JSON.parse(fromBase64Url(ms[1]))); } catch (e) {}
+  }
   return false;
 }
 
-function loadDraft() {
+async function loadDraft() {
   let gotFromHash = false;
-  try { gotFromHash = loadFromHash(); } catch (e) {}
+  try { gotFromHash = await loadFromHash(); } catch (e) {}
   try {
     const raw = localStorage.getItem(DRAFT_KEY);
     if (raw) {
@@ -1048,14 +1103,23 @@ function renderEmbedList() {
   document.getElementById('embedCount').textContent = `${state.embeds.length} / ${LIMITS.embeds}`;
   document.getElementById('btnAddEmbed').disabled = state.embeds.length >= LIMITS.embeds;
   document.getElementById('formHeader').textContent = (state.format === 'components' ? 'container ' : 'embed ') + (state.activeIndex + 1);
-  const existingNote = document.querySelector('.content-note');
-  if (state.format === 'components' && !existingNote) {
-    const note = document.createElement('div');
-    note.className = 'content-note';
-    note.textContent = 'components v2 can\u2019t attach this text to the embed itself, if you fill this in, it\u2019s sent as its own plain message right before the container.';
-    document.getElementById('msgContentDock').appendChild(note);
-  } else if (state.format !== 'components' && existingNote) {
-    existingNote.remove();
+  const dock = document.getElementById('msgContentDock');
+  const existingNote = dock.querySelector('.content-note');
+  const contentLabel = dock.querySelector('.field-row label');
+  const contentTa = document.getElementById('msgContent');
+  if (state.format === 'components') {
+    if (!existingNote) {
+      const note = document.createElement('div');
+      note.className = 'content-note';
+      note.innerHTML = `<span class="ico">${icon('check',13)}</span><span>containers can\u2019t hold this text directly, discord doesn\u2019t allow mixing content with components v2. filling this in sends it as its own plain message, posted right before the container, so it still reads as one attached message.</span>`;
+      dock.insertBefore(note, dock.firstChild);
+    }
+    if (contentLabel) contentLabel.textContent = 'message (sent separately, before the container)';
+    if (contentTa) contentTa.placeholder = 'optional, posted as its own message right before this container';
+  } else {
+    if (existingNote) existingNote.remove();
+    if (contentLabel) contentLabel.textContent = 'content';
+    if (contentTa) contentTa.placeholder = 'text above the containers (optional)';
   }
 
   const rail = document.getElementById('embedListRail');
@@ -1111,7 +1175,7 @@ function renderEmbedForm() {
     <div class="section-toggle${sectionState.fields?' open':''}" data-sec="fields"><span>fields (${em.fields.length}/${LIMITS.fields})</span><span class="chev">▸</span></div>
     <div class="section-body${sectionState.fields?' open':''}" id="sec_fields">
       <div id="fieldsWrap"></div>
-      <button class="add-field-btn" id="btnAddField" ${em.fields.length>=LIMITS.fields?'disabled':''}>+ add field</button>
+      <button class="add-field-btn" id="btnAddField" ${em.fields.length>=LIMITS.fields?'disabled':''}>+ Add field</button>
     </div>
 
     <div class="section-toggle${sectionState.footer?' open':''}" data-sec="footer"><span>footer & timestamp</span><span class="chev">▸</span></div>
@@ -1122,7 +1186,7 @@ function renderEmbedForm() {
     </div>
 
     <div style="height:16px"></div>
-    <button class="btn danger" id="btnDeleteEmbed" style="width:100%">delete this embed</button>
+    <button class="btn danger" id="btnDeleteEmbed" style="width:100%">Delete this embed</button>
   `;
 
   const preset = document.getElementById('swatches');
@@ -1223,17 +1287,17 @@ function renderComponentsForm() {
     <label class="inline-check"><input type="checkbox" id="f_cspoiler" ${em.spoiler?'checked':''}><span class="cbx-box">${icon('check',10)}</span><span>mark whole container as spoiler</span></label>
 
     <div class="quick-add" id="quickAdd">
-      <button data-t="text">+ text</button>
-      <button data-t="separator">+ separator</button>
-      <button data-t="section">+ section</button>
-      <button data-t="buttons">+ buttons</button>
-      <button data-t="gallery">+ media gallery</button>
-      <button data-t="footer" title="discord containers don't have a real footer field, this adds small muted text styled to read like one">+ footer text</button>
+      <button data-t="text">+ Text</button>
+      <button data-t="separator">+ Separator</button>
+      <button data-t="section">+ Section</button>
+      <button data-t="buttons">+ Buttons</button>
+      <button data-t="gallery">+ Media gallery</button>
+      <button data-t="footer" title="discord containers don't have a real footer field, this adds small muted text styled to read like one">+ Footer text</button>
     </div>
     <div id="blocksWrap"></div>
 
     <div style="height:16px"></div>
-    <button class="btn danger" id="btnDeleteEmbed" style="width:100%">delete this container</button>
+    <button class="btn danger" id="btnDeleteEmbed" style="width:100%">Delete this container</button>
   `;
   const preset = document.getElementById('swatches');
   PRESET_COLORS.forEach(c => { const b=document.createElement('button'); b.style.background=c; b.title=c; b.onclick=()=>{em.color=c;renderAll();}; preset.appendChild(b); });
@@ -1281,9 +1345,9 @@ function renderBlocks(em) {
         inner += `<div class="field-row"><label>image url</label><input type="text" data-k="thumbUrl" value="${escapeHtml(b.accessoryThumb.url)}" placeholder="https://..."></div>`;
       }
     } else if (b.type === 'buttons') {
-      inner += `<div id="btnItems_${i}"></div><button class="add-field-btn" data-act="addbtn" ${b.items.length>=5?'disabled':''}>+ add button</button>`;
+      inner += `<div id="btnItems_${i}"></div><button class="add-field-btn" data-act="addbtn" ${b.items.length>=5?'disabled':''}>+ Add button</button>`;
     } else if (b.type === 'gallery') {
-      inner += `<div id="galleryItems_${i}"></div><button class="add-field-btn" data-act="addimg" ${b.items.length>=10?'disabled':''}>+ add image</button>`;
+      inner += `<div id="galleryItems_${i}"></div><button class="add-field-btn" data-act="addimg" ${b.items.length>=10?'disabled':''}>+ Add image</button>`;
     }
 
     card.innerHTML = inner;
@@ -1642,7 +1706,7 @@ async function sendWebhook() {
   const urlRaw = document.getElementById('webhookUrl').value.trim();
   if (!urlRaw) { showToast('paste a webhook url first', 'err'); return; }
   if (state.settings.confirmSend) {
-    const ok = await customConfirm('send this to discord now?', { okLabel: 'send' });
+    const ok = await customConfirm('Send this to Discord now?', { okLabel: 'Send' });
     if (!ok) return;
   }
   try { localStorage.setItem(WEBHOOK_KEY, urlRaw); } catch (e) {}
@@ -1660,7 +1724,7 @@ async function sendWebhook() {
 
   try {
     if (isComponents && state.content.trim()) {
-      btn.textContent = 'sending message…';
+      btn.textContent = 'Sending message…';
       const msgPayload = { content: state.content };
       if (state.username.trim()) msgPayload.username = state.username;
       if (state.avatar_url.trim()) msgPayload.avatar_url = state.avatar_url;
@@ -1673,7 +1737,7 @@ async function sendWebhook() {
     }
 
     if (payload.embeds || payload.components) {
-      btn.textContent = 'sending…';
+      btn.textContent = 'Sending…';
       // components v2 payloads require this query param, or discord treats the message as empty
       const sendUrl = isComponents ? urlRaw + (urlRaw.includes('?') ? '&' : '?') + 'with_components=true' : urlRaw;
       const res = await fetch(sendUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
@@ -1683,7 +1747,7 @@ async function sendWebhook() {
       showToast('sent', 'ok');
     }
   } catch (e) { showToast('send failed, check the url and your connection', 'err'); }
-  finally { btn.disabled=false; btn.textContent='send'; }
+  finally { btn.disabled=false; btn.textContent='Send'; }
 }
 
 /* ---------- toast ---------- */
@@ -1755,7 +1819,7 @@ function popoutPreview() {
   const previewInner = document.getElementById('previewInner');
   const placeholder = document.createElement('div');
   placeholder.className = 'docked-placeholder';
-  placeholder.innerHTML = 'preview popped out<br><button class="btn small" id="dockBackPreview">dock it back</button>';
+  placeholder.innerHTML = 'preview popped out<br><button class="btn small" id="dockBackPreview">Dock it back</button>';
   dock.replaceWith(placeholder);
   placeholder.id = 'previewDock';
 
@@ -1782,7 +1846,7 @@ function popoutContent() {
   const textarea = document.getElementById('msgContent');
   const placeholder = document.createElement('div');
   placeholder.className = 'docked-placeholder';
-  placeholder.innerHTML = 'content editor popped out<br><button class="btn small" id="dockBackContent">dock it back</button>';
+  placeholder.innerHTML = 'content editor popped out<br><button class="btn small" id="dockBackContent">Dock it back</button>';
   fieldRow.replaceWith(placeholder);
 
   const { panel, body } = createFloatingPanel('message content', () => {
@@ -1848,8 +1912,8 @@ document.getElementById('btnSettings').onclick = () => { renderSettings(); openO
 document.getElementById('settingsClose').onclick = () => closeOverlay('settingsOverlay');
 document.getElementById('settingsOverlay').onclick = e => { if (e.target.id==='settingsOverlay') closeOverlay('settingsOverlay'); };
 
-document.getElementById('btnStorage').onclick = () => {
-  updateUrlHash();
+document.getElementById('btnStorage').onclick = async () => {
+  await updateUrlHash();
   document.getElementById('shareLink').value = location.href;
   renderLibraryList();
   openOverlay('storageOverlay');
@@ -1960,13 +2024,15 @@ document.addEventListener('keydown', e => {
   if (e.key==='Escape') { closeOverlay('jsonOverlay'); closeOverlay('settingsOverlay'); closeOverlay('storageOverlay'); }
 });
 
-loadDraft();
-document.getElementById('msgContent').value = state.content;
-document.getElementById('msgUsername').value = state.username;
-document.getElementById('msgAvatar').value = state.avatar_url;
-wireResizableTextarea(document.getElementById('msgContent'), 'msgContent');
-renderAll();
-updateUrlHash();
+(async function boot() {
+  await loadDraft();
+  document.getElementById('msgContent').value = state.content;
+  document.getElementById('msgUsername').value = state.username;
+  document.getElementById('msgAvatar').value = state.avatar_url;
+  wireResizableTextarea(document.getElementById('msgContent'), 'msgContent');
+  renderAll();
+  updateUrlHash();
+})();
 
 /* ---------- boot screen + session password gate ---------- */
 const AUTH_KEY = 'vxpe_embeds_authed';
